@@ -9,7 +9,7 @@ export const Route = createFileRoute("/dev/capabilities")({
 });
 
 function Matrix() {
-  const origin = import.meta.env.VITE_ALIN_API_ORIGIN as string | undefined;
+  const origin = import.meta.env["VITE_ALIN_API_ORIGIN"] as string | undefined;
   const prod = createAdapter({ mode: "production", apiOrigin: origin });
   return (
     <main className="mx-auto max-w-5xl p-6">

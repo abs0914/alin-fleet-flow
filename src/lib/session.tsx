@@ -38,7 +38,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         mode,
         adapter: createAdapter({
           mode,
-          apiOrigin: mode === "production" ? (import.meta.env.VITE_ALIN_API_ORIGIN as string | undefined) : undefined,
+          apiOrigin: mode === "production" ? (import.meta.env["VITE_ALIN_API_ORIGIN"] as string | undefined) : undefined,
           // Existing ALiN Supabase auth wiring is unverified; no token source yet.
           getAccessToken: async () => null,
         }),

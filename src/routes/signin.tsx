@@ -20,7 +20,7 @@ function SignIn() {
   const { start } = useSession();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const configured = !!import.meta.env.VITE_ALIN_API_ORIGIN;
+  const configured = !!import.meta.env["VITE_ALIN_API_ORIGIN"];
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
