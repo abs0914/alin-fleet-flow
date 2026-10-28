@@ -175,3 +175,11 @@ Tracking samples include assignment ID, monotonically increasing sequence, devic
 | Settlement/payout timeout or dispute | Freeze appropriate entitlement; reconcile provider/ledger; compensating entries approved and audited |
 
 Audit captures actor, effective role/fleet, action, resource/version, before/after state, reason, evidence references and correlation ID with redacted sensitive fields. Rate-limit authentication, proposals, location ingestion and uploads. Use scoped CORS, TLS, request size limits, private signed storage, log redaction and existing session security conventions. Verify OTP enforcement, disabled development bypass, identity linkage and Maya webhook signature/idempotency in actual source before production. These issues are reported by historical SOPs, not independently reproduced here.
+
+## Protocol hardening (client, fixture-tested; backend pending)
+
+- Path parameters must match `^[A-Za-z0-9._~-]{1,128}$` and cannot be dot-only; traversal (`..`), separators, percent-encodings and control characters are rejected before any token read or request.
+- A binding is usable only when it is `verified` **and** has a `validateResponse` schema check; otherwise the operation reports Integration required.
+- A 2xx command response that is non-JSON, empty or fails schema validation is treated as **outcome unknown**; the frozen attempt (same idempotency key, correlation ID, payload) must be retried or reconciled — never re-minted. Malformed read responses surface as errors; no demo fallback.
+- Platform fee ₱399 introductory / ₱1,000 regular is a confirmed **per-booking** fleet fee for all bookings. Only the applicability of the ₱1,000 cancellation hold and 70/30 capture to standard jobs is open. The backend-frozen fee may display as pending until the API responds; standard bookings are not fee-exempt.
+- Equipment container length (`containerLengthFt`: 20 | 40) is an optional attribute of tractor head/container/trailer vehicles and RFQs; the backend catalog remains authoritative.
