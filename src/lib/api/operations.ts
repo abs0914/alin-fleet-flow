@@ -40,10 +40,23 @@ export type OperationId =
 
 export type VerificationStatus = "unverified" | "verified";
 
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+/**
+ * A verified route binding. `pathTemplate` is origin-relative ("/x/:id"),
+ * never absolute or network-path ("//host"). `:name` segments are filled from
+ * request params; `query` is the allowlist of query keys the route accepts.
+ */
+export interface RouteBinding {
+  method: HttpMethod;
+  pathTemplate: string;
+  query?: readonly string[];
+}
+
 export interface OperationMapping {
   id: OperationId;
   kind: "read" | "command";
-  route: { method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; path: string } | null;
+  route: RouteBinding | null;
   status: VerificationStatus;
   note?: string;
 }
@@ -53,7 +66,7 @@ const op = (id: OperationId, kind: "read" | "command", note?: string): Operation
   kind,
   route: null,
   status: "unverified",
-  note,
+  ...(note !== undefined ? { note } : {}),
 });
 
 export const OPERATIONS: OperationMapping[] = [
