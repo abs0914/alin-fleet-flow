@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Bell, Briefcase, FileText, Gauge, LogOut, MapPin, Menu, Settings, Truck, Users, Wallet, X, ClipboardCheck,
+  Bell, Briefcase, FileText, Table2, Gauge, LogOut, MapPin, Menu, Settings, Truck, Users, Wallet, X, ClipboardCheck,
 } from "lucide-react";
 import logo from "@/assets/alinmove_logo.png.asset.json";
 import { useIdentity, useSession, useOp } from "@/lib/session";
@@ -16,6 +16,7 @@ const NAV = [
   { to: "/onboarding", label: "Onboarding", icon: ClipboardCheck },
   { to: "/jobs", label: "Jobs", icon: Briefcase },
   { to: "/rfqs", label: "RFQs & Proposals", icon: FileText },
+  { to: "/rates", label: "Rate Reference", icon: Table2 },
   { to: "/vehicles", label: "Fleet Vehicles", icon: Truck },
   { to: "/drivers", label: "Drivers", icon: Users },
   { to: "/tracking", label: "Tracking", icon: MapPin },

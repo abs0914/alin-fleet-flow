@@ -13,8 +13,8 @@ export const Route = createFileRoute("/_portal/vehicles")({
   component: Vehicles,
 });
 
-type Form = { id?: string; plate: string; categoryId: string; capacityKg: string; l: string; w: string; h: string; reeferMin: string; reeferMax: string; lifting: string; coupling: "" | "tractor" | "trailer"; pairedWith: string; docsUntil: string };
-const blank: Form = { plate: "", categoryId: "", capacityKg: "", l: "", w: "", h: "", reeferMin: "", reeferMax: "", lifting: "", coupling: "", pairedWith: "", docsUntil: "" };
+type Form = { id?: string; plate: string; categoryId: string; capacityKg: string; l: string; w: string; h: string; reeferMin: string; reeferMax: string; lifting: string; coupling: "" | "tractor" | "trailer"; pairedWith: string; docsUntil: string; lengthFt: "" | "20" | "40" };
+const blank: Form = { plate: "", categoryId: "", capacityKg: "", l: "", w: "", h: "", reeferMin: "", reeferMax: "", lifting: "", coupling: "", pairedWith: "", docsUntil: "", lengthFt: "" };
 
 function Vehicles() {
   const id = useIdentity();
@@ -48,12 +48,13 @@ function Vehicles() {
                     <td className="text-xs">
                       {v.reeferRangeC && <div>Reefer {v.reeferRangeC.min}°C…{v.reeferRangeC.max}°C</div>}
                       {v.liftingCapacityKg && <div>Lifts {v.liftingCapacityKg.toLocaleString()} kg</div>}
+                      {v.containerLengthFt && <div>Container length {v.containerLengthFt} ft</div>}
                       {v.coupling && <div className="capitalize">{v.coupling}{v.pairedWith ? ` · paired ${v.pairedWith} (shared lock)` : ""}</div>}
                     </td>
                     <td>{expired ? <StatusBadge tone="bad">Expired</StatusBadge> : <span className="text-xs">{formatManila(v.documentsValidUntil)}</span>}</td>
                     <td><StatusBadge tone={v.approval === "approved" ? "ok" : v.approval === "rejected" ? "bad" : "warn"}>{v.approval.replace("_", " ")}</StatusBadge></td>
                     <td><StatusBadge tone={v.availability === "available" ? "ok" : v.availability === "assigned" ? "info" : "bad"}>{v.availability}</StatusBadge>{v.blockReason && <p className="mt-1 text-xs text-muted-foreground">{v.blockReason}</p>}</td>
-                    <td><button className="btn-ghost" disabled={!!perm && !perm.enabled} onClick={() => setForm({ id: v.id, plate: v.plate, categoryId: v.categoryId, capacityKg: String(v.capacityKg), l: String(v.dimensionsCm.l), w: String(v.dimensionsCm.w), h: String(v.dimensionsCm.h), reeferMin: String(v.reeferRangeC?.min ?? ""), reeferMax: String(v.reeferRangeC?.max ?? ""), lifting: String(v.liftingCapacityKg ?? ""), coupling: v.coupling ?? "", pairedWith: v.pairedWith ?? "", docsUntil: v.documentsValidUntil.slice(0, 10) })} aria-label={`Edit ${v.plate}`}>Edit</button></td>
+                    <td><button className="btn-ghost" disabled={!!perm && !perm.enabled} onClick={() => setForm({ id: v.id, plate: v.plate, categoryId: v.categoryId, capacityKg: String(v.capacityKg), l: String(v.dimensionsCm.l), w: String(v.dimensionsCm.w), h: String(v.dimensionsCm.h), reeferMin: String(v.reeferRangeC?.min ?? ""), reeferMax: String(v.reeferRangeC?.max ?? ""), lifting: String(v.liftingCapacityKg ?? ""), coupling: v.coupling ?? "", pairedWith: v.pairedWith ?? "", docsUntil: v.documentsValidUntil.slice(0, 10), lengthFt: v.containerLengthFt ? (String(v.containerLengthFt) as "20" | "40") : "" })} aria-label={`Edit ${v.plate}`}>Edit</button></td>
                   </tr>
                 );
               })}
@@ -88,7 +89,7 @@ function VehicleForm({ form, setForm, cat, vehicles }: { form: Form; setForm: (f
     setErrors(e);
     if (Object.keys(e).length) return;
     save.mutate(
-      { payload: { id: form.id, plate: form.plate.toUpperCase().trim(), categoryId: form.categoryId, capacityKg: Number(form.capacityKg) || 0, dimensionsCm: { l: +form.l, w: +form.w, h: +form.h }, reeferRangeC: isReefer ? { min: +form.reeferMin, max: +form.reeferMax } : undefined, liftingCapacityKg: isBoom ? +form.lifting : undefined, coupling: isCoupled ? (c?.taxonomy === "Trailer" ? "trailer" : "tractor") : undefined, pairedWith: form.pairedWith || undefined, documentsValidUntil: new Date(form.docsUntil + "T00:00:00+08:00").toISOString() } },
+      { payload: { id: form.id, plate: form.plate.toUpperCase().trim(), categoryId: form.categoryId, capacityKg: Number(form.capacityKg) || 0, dimensionsCm: { l: +form.l, w: +form.w, h: +form.h }, reeferRangeC: isReefer ? { min: +form.reeferMin, max: +form.reeferMax } : undefined, liftingCapacityKg: isBoom ? +form.lifting : undefined, coupling: isCoupled ? (c?.taxonomy === "Trailer" ? "trailer" : "tractor") : undefined, containerLengthFt: isCoupled && form.lengthFt ? (Number(form.lengthFt) as 20 | 40) : undefined, pairedWith: form.pairedWith || undefined, documentsValidUntil: new Date(form.docsUntil + "T00:00:00+08:00").toISOString() } },
       { onSuccess: () => { toast.success("Saved. New vehicles wait for ALiN approval."); setForm(null); }, onError: (er) => toast.error(er.message) },
     );
   };
@@ -117,6 +118,9 @@ function VehicleForm({ form, setForm, cat, vehicles }: { form: Form; setForm: (f
         {isCoupled && <label className="field"><span>Pair with compatible {c?.taxonomy === "Trailer" ? "tractor" : "trailer"}</span>
           <select className="input" value={form.pairedWith} onChange={set("pairedWith")}><option value="">Not paired</option>{counterparts.map((v) => <option key={v.id} value={v.id}>{v.plate}</option>)}</select>
           <span className="text-xs text-muted-foreground">Paired units share one capacity lock.</span></label>}
+        {isCoupled && <label className="field"><span>Container length option</span>
+          <select className="input" value={form.lengthFt} onChange={set("lengthFt")}><option value="">Not specified</option><option value="20">20 ft (20FTR)</option><option value="40">40 ft (40FTR)</option></select>
+          <span className="text-xs text-muted-foreground">Length option only. Capacity and dimensions are entered separately; the backend catalog decides.</span></label>}
         <label className="field"><span>Documents valid until</span><input className="input" type="date" value={form.docsUntil} onChange={set("docsUntil")} />{err("docsUntil")}</label>
       </div>
       <div className="flex gap-2">

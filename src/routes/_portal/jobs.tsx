@@ -155,7 +155,7 @@ function BookingDetail({ b }: { b: Booking }) {
       ) : (
         <div className="rounded-md border border-dashed p-3 text-sm">
           <p className="font-semibold">Standard job · fare {formatPHP(b.grossCentavos)} (backend)</p>
-          <p className="text-muted-foreground">Payment terms, holds and platform fee for standard jobs are awaiting backend confirmation. Nothing here is estimated.</p>
+          <p className="text-muted-foreground">The fleet platform fee (₱399 introductory / ₱1,000 regular, per booking) applies; the frozen amount comes from the backend. Whether the cancellation hold and 70/30 capture apply to standard jobs is awaiting confirmation. Nothing here is estimated.</p>
         </div>
       )}
       <p className="text-xs text-muted-foreground">Payment statuses and physical pickup/delivery are tracked separately. A green indicator here never authorizes dispatch — only the backend does.</p>

@@ -16,6 +16,7 @@ import { Route as PortalDriversRouteImport } from './routes/_portal/drivers'
 import { Route as PortalJobsRouteImport } from './routes/_portal/jobs'
 import { Route as PortalNotificationsRouteImport } from './routes/_portal/notifications'
 import { Route as PortalOnboardingRouteImport } from './routes/_portal/onboarding'
+import { Route as PortalRatesRouteImport } from './routes/_portal/rates'
 import { Route as PortalRfqsRouteImport } from './routes/_portal/rfqs'
 import { Route as PortalSettingsRouteImport } from './routes/_portal/settings'
 import { Route as PortalSettlementsRouteImport } from './routes/_portal/settlements'
@@ -57,6 +58,11 @@ const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalRatesRoute = PortalRatesRouteImport.update({
+  id: '/rates',
+  path: '/rates',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalRfqsRoute = PortalRfqsRouteImport.update({
   id: '/rfqs',
   path: '/rfqs',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof PortalJobsRoute
   '/notifications': typeof PortalNotificationsRoute
   '/onboarding': typeof PortalOnboardingRoute
+  '/rates': typeof PortalRatesRoute
   '/rfqs': typeof PortalRfqsRoute
   '/settings': typeof PortalSettingsRoute
   '/settlements': typeof PortalSettlementsRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof PortalJobsRoute
   '/notifications': typeof PortalNotificationsRoute
   '/onboarding': typeof PortalOnboardingRoute
+  '/rates': typeof PortalRatesRoute
   '/rfqs': typeof PortalRfqsRoute
   '/settings': typeof PortalSettingsRoute
   '/settlements': typeof PortalSettlementsRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/_portal/jobs': typeof PortalJobsRoute
   '/_portal/notifications': typeof PortalNotificationsRoute
   '/_portal/onboarding': typeof PortalOnboardingRoute
+  '/_portal/rates': typeof PortalRatesRoute
   '/_portal/rfqs': typeof PortalRfqsRoute
   '/_portal/settings': typeof PortalSettingsRoute
   '/_portal/settlements': typeof PortalSettlementsRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/notifications'
     | '/onboarding'
+    | '/rates'
     | '/rfqs'
     | '/settings'
     | '/settlements'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/notifications'
     | '/onboarding'
+    | '/rates'
     | '/rfqs'
     | '/settings'
     | '/settlements'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/_portal/jobs'
     | '/_portal/notifications'
     | '/_portal/onboarding'
+    | '/_portal/rates'
     | '/_portal/rfqs'
     | '/_portal/settings'
     | '/_portal/settlements'
@@ -235,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalOnboardingRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/_portal/rates': {
+      id: '/_portal/rates'
+      path: '/rates'
+      fullPath: '/rates'
+      preLoaderRoute: typeof PortalRatesRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/_portal/rfqs': {
       id: '/_portal/rfqs'
       path: '/rfqs'
@@ -285,6 +304,7 @@ interface PortalRouteChildren {
   PortalJobsRoute: typeof PortalJobsRoute
   PortalNotificationsRoute: typeof PortalNotificationsRoute
   PortalOnboardingRoute: typeof PortalOnboardingRoute
+  PortalRatesRoute: typeof PortalRatesRoute
   PortalRfqsRoute: typeof PortalRfqsRoute
   PortalSettingsRoute: typeof PortalSettingsRoute
   PortalSettlementsRoute: typeof PortalSettlementsRoute
@@ -298,6 +318,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalJobsRoute: PortalJobsRoute,
   PortalNotificationsRoute: PortalNotificationsRoute,
   PortalOnboardingRoute: PortalOnboardingRoute,
+  PortalRatesRoute: PortalRatesRoute,
   PortalRfqsRoute: PortalRfqsRoute,
   PortalSettingsRoute: PortalSettingsRoute,
   PortalSettlementsRoute: PortalSettlementsRoute,

@@ -35,6 +35,8 @@ export interface Vehicle {
   reeferRangeC?: { min: number; max: number };
   liftingCapacityKg?: number;
   coupling?: "tractor" | "trailer";
+  /** Container length option (tractor head/container/trailer only). Not a wheel count; no dimensions inferred. */
+  containerLengthFt?: 20 | 40;
   pairedWith?: string;
   documentsValidUntil: ISO;
   approval: VehicleStatus;
@@ -95,6 +97,8 @@ export interface Rfq {
   temperatureC?: { min: number; max: number };
   liftingKg?: number;
   container?: string;
+  /** Requested container length option, when the backend RFQ provides one. */
+  containerLengthFt?: 20 | 40;
   requirementsVersion: number;
   status: "open" | "selected" | "expired" | "cancelled";
   myProposals: Proposal[];
