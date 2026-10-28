@@ -25,7 +25,7 @@ function SignIn() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <section className="hidden flex-col justify-between bg-secondary p-12 text-secondary-foreground lg:flex">
-        <Wordmark />
+        <Wordmark className="h-14" />
         <div>
           <h1 className="font-display text-5xl font-extrabold leading-tight">
             Run your fleet.<br /><span className="text-primary">We'll handle the paperwork trail.</span>

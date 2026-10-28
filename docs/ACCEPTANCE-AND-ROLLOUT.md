@@ -94,7 +94,7 @@ UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level onl
 - Location retention and consent; stale threshold (proposed 120 s).
 - Mapping integration provider.
 - Mapping of proposed roles to existing backend roles.
-- Brand colors are provisional; no official logo supplied (text wordmark used).
+- Brand colors are provisional. Official ALiN Move logo supplied and used (sidebar, sign-in, favicon), aspect ratio preserved.
 
 ## Launch and recovery gates
 
