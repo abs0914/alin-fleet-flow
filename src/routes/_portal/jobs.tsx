@@ -65,7 +65,7 @@ function Offers() {
             <GuardedButton
               op="standardOffer.accept"
               disabledReason={perm && !perm.enabled ? perm.reason : undefined}
-              pending={accept.isPending && accept.variables?.payload && (accept.variables.payload as { id: string }).id === o.id}
+              pending={accept.isPending && !!accept.variables?.payload && (accept.variables.payload as { id: string }).id === o.id}
               onClick={() =>
                 accept.mutate(
                   { payload: { id: o.id }, version: o.version },
