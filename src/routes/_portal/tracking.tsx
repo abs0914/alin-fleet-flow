@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { pageHead } from "@/lib/head";
+import { locationLabel } from "@/lib/tracking";
 import { useOp, useSession } from "@/lib/session";
 import { formatManila } from "@/lib/money";
 import type { Booking, Page, TrackingLatest } from "@/lib/api/types";
@@ -9,14 +10,6 @@ export const Route = createFileRoute("/_portal/tracking")({
   head: () => pageHead("Tracking", "Last known driver location for active fleet jobs, with stale and offline labels."),
   component: Tracking,
 });
-
-const STALE_SECONDS = 120; // proposed threshold; backend-configurable
-
-export function locationLabel(t: TrackingLatest, nowMs = Date.now()): { tone: "ok" | "warn" | "muted"; text: string } {
-  if (!t.capturedAt || t.lat === null || t.lng === null) return { tone: "muted", text: "Location unavailable" };
-  const age = (nowMs - new Date(t.capturedAt).getTime()) / 1000;
-  return age > STALE_SECONDS ? { tone: "warn", text: `Stale — last update ${Math.round(age / 60)} min ago` } : { tone: "ok", text: "Recent" };
-}
 
 function Tracking() {
   const { session } = useSession();
