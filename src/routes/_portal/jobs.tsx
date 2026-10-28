@@ -123,11 +123,13 @@ function BookingDetail({ b }: { b: Booking }) {
   const [driverId, setDriverId] = useState("");
   const [vehicleId, setVehicleId] = useState("");
   const perm = id.data ? present(id.data.role, "assignment.write", { onboarding: id.data.fleet.onboarding }) : null;
-  const split = b.acceptedProposal ? estimateSplit(b.acceptedProposal.totalCentavos) : null;
-  const net = estimateNet(b.grossCentavos, b.feeCentavos);
+  const isQuote = b.source === "rfq" && !!b.acceptedProposal;
+  const split = isQuote && b.acceptedProposal ? estimateSplit(b.acceptedProposal.totalCentavos) : null;
+  const net = isQuote && b.feeCentavos !== null ? estimateNet(b.grossCentavos, b.feeCentavos) : null;
   const afterPickup = ["picked_up", "in_transit", "delivered"].includes(b.state);
-  const okDrivers = drivers.data?.items.filter((d) => d.status === "approved" && d.availability === "available") ?? [];
-  const okVehicles = vehicles.data?.items.filter((v) => v.approval === "approved" && v.availability === "available") ?? [];
+  // Convenience pre-filter only; the server (demo simulation here) decides.
+  const okDrivers = drivers.data?.items.filter((d) => d.status === "approved" && d.membership === "managed_active" && d.availability === "available" && Date.parse(d.licenseValidUntil) > Date.now()) ?? [];
+  const okVehicles = vehicles.data?.items.filter((v) => v.categoryId === b.categoryId && v.approval === "approved" && v.availability === "available" && Date.parse(v.documentsValidUntil) > Date.now() && v.coupling !== "trailer") ?? [];
 
   return (
     <section className="card space-y-5" aria-label={`Booking ${b.id}`}>
@@ -141,14 +143,21 @@ function BookingDetail({ b }: { b: Booking }) {
           <p>{b.acceptedProposal.id} v{b.acceptedProposal.version} · {formatPHP(b.acceptedProposal.totalCentavos)}</p>
         </div>
       )}
-      <div className="grid gap-3 text-sm sm:grid-cols-2">
-        <div><p className="text-muted-foreground">Cancellation hold ({formatPHP(CANCELLATION_HOLD_CENTAVOS)}, separate)</p><StatusBadge tone={b.holdState === "active" ? "info" : b.holdState === "released" ? "ok" : b.holdState === "release_pending" ? "warn" : "muted"}>{b.holdState.replace("_", " ")}</StatusBadge></div>
-        <div><p className="text-muted-foreground">Dispatch funding (70%)</p><StatusBadge tone={b.fundingVerified === "verified" ? "ok" : b.fundingVerified === "insufficient" ? "bad" : "muted"}>{b.fundingVerified}</StatusBadge></div>
-        <div><p className="text-muted-foreground">Pickup capture{split ? ` (est. ${formatPHP(split.p1)})` : ""}</p><StatusBadge tone={capTone(b.pickupCapture)}>{b.pickupCapture.replace("_", " ")}</StatusBadge></div>
-        <div><p className="text-muted-foreground">Final capture{split ? ` (est. ${formatPHP(split.p2)})` : ""}</p><StatusBadge tone={capTone(b.finalCapture)}>{b.finalCapture.replace("_", " ")}</StatusBadge></div>
-        <div><p className="text-muted-foreground">Platform fee ({b.feeKind}, frozen by backend)</p><p className="font-semibold">{formatPHP(b.feeCentavos)}</p></div>
-        <div><p className="text-muted-foreground">Estimated net settlement <span className="text-xs">(estimate only)</span></p><p className="font-semibold">{net === null ? "Finance review" : formatPHP(net)}</p></div>
-      </div>
+      {isQuote ? (
+        <div className="grid gap-3 text-sm sm:grid-cols-2">
+          <div><p className="text-muted-foreground">Cancellation hold ({formatPHP(CANCELLATION_HOLD_CENTAVOS)}, separate)</p><StatusBadge tone={b.holdState === "active" ? "info" : b.holdState === "released" ? "ok" : b.holdState === "release_pending" ? "warn" : "muted"}>{b.holdState.replace("_", " ")}</StatusBadge></div>
+          <div><p className="text-muted-foreground">Dispatch funding (70% of quote)</p><StatusBadge tone={b.fundingVerified === "verified" ? "ok" : b.fundingVerified === "insufficient" ? "bad" : "muted"}>{b.fundingVerified}</StatusBadge></div>
+          <div><p className="text-muted-foreground">Pickup capture{split ? ` (est. ${formatPHP(split.p1)})` : ""}</p><StatusBadge tone={capTone(b.pickupCapture)}>{b.pickupCapture.replace("_", " ")}</StatusBadge></div>
+          <div><p className="text-muted-foreground">Final capture{split ? ` (est. ${formatPHP(split.p2)})` : ""}</p><StatusBadge tone={capTone(b.finalCapture)}>{b.finalCapture.replace("_", " ")}</StatusBadge></div>
+          <div><p className="text-muted-foreground">Platform fee ({b.feeKind ?? "pending"}, frozen by backend)</p><p className="font-semibold">{b.feeCentavos === null ? "Awaiting backend" : formatPHP(b.feeCentavos)}</p></div>
+          <div><p className="text-muted-foreground">Estimated net settlement <span className="text-xs">(estimate only)</span></p><p className="font-semibold">{net === null ? "Finance review" : formatPHP(net)}</p></div>
+        </div>
+      ) : (
+        <div className="rounded-md border border-dashed p-3 text-sm">
+          <p className="font-semibold">Standard job · fare {formatPHP(b.grossCentavos)} (backend)</p>
+          <p className="text-muted-foreground">Payment terms, holds and platform fee for standard jobs are awaiting backend confirmation. Nothing here is estimated.</p>
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">Payment statuses and physical pickup/delivery are tracked separately. A green indicator here never authorizes dispatch — only the backend does.</p>
 
       <fieldset className="space-y-3 rounded-md border p-4">
