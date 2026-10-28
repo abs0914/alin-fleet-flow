@@ -31,19 +31,26 @@ export function formatPHP(centavos: Centavos): string {
 
 /**
  * UI ESTIMATE of the proposed 70/30 split (pending finance approval).
- * P1 = roundHalfUp(Q × 70 / 100) using integer arithmetic; P2 = Q − P1.
+ * P1 = roundHalfUp(Q × 70 / 100), P2 = Q − P1. BigInt intermediate so Q × 70
+ * never loses precision, even at Number.MAX_SAFE_INTEGER.
  */
 export function estimateSplit(totalCentavos: Centavos): { p1: Centavos; p2: Centavos } {
   assertCentavos(totalCentavos);
   if (totalCentavos <= 0) throw new RangeError("Quote total must be positive");
-  const p1 = Math.floor((totalCentavos * 70 + 50) / 100);
-  return { p1, p2: totalCentavos - p1 };
+  const q = BigInt(totalCentavos);
+  const p1 = (q * 70n + 50n) / 100n;
+  return { p1: Number(p1), p2: Number(q - p1) };
 }
 
-/** UI ESTIMATE of net before approved adjustments. Returns null when below-fee (finance review). */
+/**
+ * UI ESTIMATE of net before approved adjustments. Gross and fee must be
+ * nonnegative safe integers. Returns null when below-fee (finance review).
+ */
 export function estimateNet(grossCentavos: Centavos, feeCentavos: Centavos): Centavos | null {
   assertCentavos(grossCentavos);
   assertCentavos(feeCentavos);
+  if (grossCentavos < 0) throw new RangeError("Gross must be nonnegative");
+  if (feeCentavos < 0) throw new RangeError("Fee must be nonnegative");
   const net = grossCentavos - feeCentavos;
   return net < 0 ? null : net;
 }
@@ -51,11 +58,11 @@ export function estimateNet(grossCentavos: Centavos, feeCentavos: Centavos): Cen
 /** Parse a user-typed peso string ("10,000.50") into integer centavos without floats. */
 export function parsePesoInput(input: string): Centavos | null {
   const cleaned = input.replace(/[₱,\s]/g, "");
-  const m = /^(\d{1,12})(?:\.(\d{1,2}))?$/.exec(cleaned);
+  const m = /^(\d{1,16})(?:\.(\d{1,2}))?$/.exec(cleaned);
   if (!m) return null;
   const cents = (m[2] ?? "").padEnd(2, "0");
-  const v = Number(m[1]) * 100 + Number(cents);
-  return Number.isSafeInteger(v) ? v : null;
+  const v = BigInt(m[1]) * 100n + BigInt(cents);
+  return v <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(v) : null;
 }
 
 const manilaFmt = new Intl.DateTimeFormat("en-PH", {
