@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PortalRouteImport } from './routes/_portal'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as PortalIndexRouteImport } from './routes/_portal/index'
+import { Route as PortalJobsRouteImport } from './routes/_portal/jobs'
 import { Route as PortalOnboardingRouteImport } from './routes/_portal/onboarding'
+import { Route as PortalRfqsRouteImport } from './routes/_portal/rfqs'
 
 const PortalRoute = PortalRouteImport.update({
   id: '/_portal',
@@ -28,35 +30,58 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalJobsRoute = PortalJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalRfqsRoute = PortalRfqsRouteImport.update({
+  id: '/rfqs',
+  path: '/rfqs',
   getParentRoute: () => PortalRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PortalIndexRoute
   '/signin': typeof SigninRoute
+  '/jobs': typeof PortalJobsRoute
   '/onboarding': typeof PortalOnboardingRoute
+  '/rfqs': typeof PortalRfqsRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
+  '/jobs': typeof PortalJobsRoute
   '/onboarding': typeof PortalOnboardingRoute
+  '/rfqs': typeof PortalRfqsRoute
   '/': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_portal': typeof PortalRouteWithChildren
   '/signin': typeof SigninRoute
+  '/_portal/jobs': typeof PortalJobsRoute
   '/_portal/onboarding': typeof PortalOnboardingRoute
+  '/_portal/rfqs': typeof PortalRfqsRoute
   '/_portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signin' | '/onboarding'
+  fullPaths: '/' | '/signin' | '/jobs' | '/onboarding' | '/rfqs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/signin' | '/onboarding' | '/'
-  id: '__root__' | '/_portal' | '/signin' | '/_portal/onboarding' | '/_portal/'
+  to: '/signin' | '/jobs' | '/onboarding' | '/rfqs' | '/'
+  id:
+    | '__root__'
+    | '/_portal'
+    | '/signin'
+    | '/_portal/jobs'
+    | '/_portal/onboarding'
+    | '/_portal/rfqs'
+    | '/_portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -87,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalIndexRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/_portal/jobs': {
+      id: '/_portal/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof PortalJobsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/_portal/onboarding': {
       id: '/_portal/onboarding'
       path: '/onboarding'
@@ -94,16 +126,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalOnboardingRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/_portal/rfqs': {
+      id: '/_portal/rfqs'
+      path: '/rfqs'
+      fullPath: '/rfqs'
+      preLoaderRoute: typeof PortalRfqsRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
 interface PortalRouteChildren {
+  PortalJobsRoute: typeof PortalJobsRoute
   PortalOnboardingRoute: typeof PortalOnboardingRoute
+  PortalRfqsRoute: typeof PortalRfqsRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalJobsRoute: PortalJobsRoute,
   PortalOnboardingRoute: PortalOnboardingRoute,
+  PortalRfqsRoute: PortalRfqsRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
 
