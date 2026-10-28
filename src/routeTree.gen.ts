@@ -14,10 +14,14 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as PortalIndexRouteImport } from './routes/_portal/index'
 import { Route as PortalDriversRouteImport } from './routes/_portal/drivers'
 import { Route as PortalJobsRouteImport } from './routes/_portal/jobs'
+import { Route as PortalNotificationsRouteImport } from './routes/_portal/notifications'
 import { Route as PortalOnboardingRouteImport } from './routes/_portal/onboarding'
 import { Route as PortalRfqsRouteImport } from './routes/_portal/rfqs'
+import { Route as PortalSettingsRouteImport } from './routes/_portal/settings'
+import { Route as PortalSettlementsRouteImport } from './routes/_portal/settlements'
 import { Route as PortalTrackingRouteImport } from './routes/_portal/tracking'
 import { Route as PortalVehiclesRouteImport } from './routes/_portal/vehicles'
+import { Route as DevCapabilitiesRouteImport } from './routes/dev.capabilities'
 
 const PortalRoute = PortalRouteImport.update({
   id: '/_portal',
@@ -43,6 +47,11 @@ const PortalJobsRoute = PortalJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalNotificationsRoute = PortalNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -51,6 +60,16 @@ const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
 const PortalRfqsRoute = PortalRfqsRouteImport.update({
   id: '/rfqs',
   path: '/rfqs',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSettingsRoute = PortalSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSettlementsRoute = PortalSettlementsRouteImport.update({
+  id: '/settlements',
+  path: '/settlements',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalTrackingRoute = PortalTrackingRouteImport.update({
@@ -63,25 +82,38 @@ const PortalVehiclesRoute = PortalVehiclesRouteImport.update({
   path: '/vehicles',
   getParentRoute: () => PortalRoute,
 } as any)
+const DevCapabilitiesRoute = DevCapabilitiesRouteImport.update({
+  id: '/dev/capabilities',
+  path: '/dev/capabilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PortalIndexRoute
   '/signin': typeof SigninRoute
   '/drivers': typeof PortalDriversRoute
   '/jobs': typeof PortalJobsRoute
+  '/notifications': typeof PortalNotificationsRoute
   '/onboarding': typeof PortalOnboardingRoute
   '/rfqs': typeof PortalRfqsRoute
+  '/settings': typeof PortalSettingsRoute
+  '/settlements': typeof PortalSettlementsRoute
   '/tracking': typeof PortalTrackingRoute
   '/vehicles': typeof PortalVehiclesRoute
+  '/dev/capabilities': typeof DevCapabilitiesRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/drivers': typeof PortalDriversRoute
   '/jobs': typeof PortalJobsRoute
+  '/notifications': typeof PortalNotificationsRoute
   '/onboarding': typeof PortalOnboardingRoute
   '/rfqs': typeof PortalRfqsRoute
+  '/settings': typeof PortalSettingsRoute
+  '/settlements': typeof PortalSettlementsRoute
   '/tracking': typeof PortalTrackingRoute
   '/vehicles': typeof PortalVehiclesRoute
+  '/dev/capabilities': typeof DevCapabilitiesRoute
   '/': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
@@ -90,10 +122,14 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/_portal/drivers': typeof PortalDriversRoute
   '/_portal/jobs': typeof PortalJobsRoute
+  '/_portal/notifications': typeof PortalNotificationsRoute
   '/_portal/onboarding': typeof PortalOnboardingRoute
   '/_portal/rfqs': typeof PortalRfqsRoute
+  '/_portal/settings': typeof PortalSettingsRoute
+  '/_portal/settlements': typeof PortalSettlementsRoute
   '/_portal/tracking': typeof PortalTrackingRoute
   '/_portal/vehicles': typeof PortalVehiclesRoute
+  '/dev/capabilities': typeof DevCapabilitiesRoute
   '/_portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
@@ -103,19 +139,27 @@ export interface FileRouteTypes {
     | '/signin'
     | '/drivers'
     | '/jobs'
+    | '/notifications'
     | '/onboarding'
     | '/rfqs'
+    | '/settings'
+    | '/settlements'
     | '/tracking'
     | '/vehicles'
+    | '/dev/capabilities'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/signin'
     | '/drivers'
     | '/jobs'
+    | '/notifications'
     | '/onboarding'
     | '/rfqs'
+    | '/settings'
+    | '/settlements'
     | '/tracking'
     | '/vehicles'
+    | '/dev/capabilities'
     | '/'
   id:
     | '__root__'
@@ -123,16 +167,21 @@ export interface FileRouteTypes {
     | '/signin'
     | '/_portal/drivers'
     | '/_portal/jobs'
+    | '/_portal/notifications'
     | '/_portal/onboarding'
     | '/_portal/rfqs'
+    | '/_portal/settings'
+    | '/_portal/settlements'
     | '/_portal/tracking'
     | '/_portal/vehicles'
+    | '/dev/capabilities'
     | '/_portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   SigninRoute: typeof SigninRoute
+  DevCapabilitiesRoute: typeof DevCapabilitiesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalJobsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/_portal/notifications': {
+      id: '/_portal/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof PortalNotificationsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/_portal/onboarding': {
       id: '/_portal/onboarding'
       path: '/onboarding'
@@ -184,6 +240,20 @@ declare module '@tanstack/react-router' {
       path: '/rfqs'
       fullPath: '/rfqs'
       preLoaderRoute: typeof PortalRfqsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/_portal/settings': {
+      id: '/_portal/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof PortalSettingsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/_portal/settlements': {
+      id: '/_portal/settlements'
+      path: '/settlements'
+      fullPath: '/settlements'
+      preLoaderRoute: typeof PortalSettlementsRouteImport
       parentRoute: typeof PortalRoute
     }
     '/_portal/tracking': {
@@ -200,14 +270,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalVehiclesRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/dev/capabilities': {
+      id: '/dev/capabilities'
+      path: '/dev/capabilities'
+      fullPath: '/dev/capabilities'
+      preLoaderRoute: typeof DevCapabilitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface PortalRouteChildren {
   PortalDriversRoute: typeof PortalDriversRoute
   PortalJobsRoute: typeof PortalJobsRoute
+  PortalNotificationsRoute: typeof PortalNotificationsRoute
   PortalOnboardingRoute: typeof PortalOnboardingRoute
   PortalRfqsRoute: typeof PortalRfqsRoute
+  PortalSettingsRoute: typeof PortalSettingsRoute
+  PortalSettlementsRoute: typeof PortalSettlementsRoute
   PortalTrackingRoute: typeof PortalTrackingRoute
   PortalVehiclesRoute: typeof PortalVehiclesRoute
   PortalIndexRoute: typeof PortalIndexRoute
@@ -216,8 +296,11 @@ interface PortalRouteChildren {
 const PortalRouteChildren: PortalRouteChildren = {
   PortalDriversRoute: PortalDriversRoute,
   PortalJobsRoute: PortalJobsRoute,
+  PortalNotificationsRoute: PortalNotificationsRoute,
   PortalOnboardingRoute: PortalOnboardingRoute,
   PortalRfqsRoute: PortalRfqsRoute,
+  PortalSettingsRoute: PortalSettingsRoute,
+  PortalSettlementsRoute: PortalSettlementsRoute,
   PortalTrackingRoute: PortalTrackingRoute,
   PortalVehiclesRoute: PortalVehiclesRoute,
   PortalIndexRoute: PortalIndexRoute,
@@ -229,6 +312,7 @@ const PortalRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   SigninRoute: SigninRoute,
+  DevCapabilitiesRoute: DevCapabilitiesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
