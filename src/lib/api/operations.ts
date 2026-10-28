@@ -19,6 +19,7 @@ export type OperationId =
   | "membership.revoke"
   | "standardOffer.list"
   | "standardOffer.accept"
+  | "booking.list"
   | "rfq.list"
   | "rfq.detail"
   | "proposal.submit"
@@ -70,6 +71,7 @@ export const OPERATIONS: OperationMapping[] = [
   op("membership.revoke", "command", "Must revoke public offers atomically."),
   op("standardOffer.list", "read"),
   op("standardOffer.accept", "command", "Atomic winner; 409 JOB_UNAVAILABLE on conflict."),
+  op("booking.list", "read", "Fleet-owned jobs incl. timeline/financial state."),
   op("rfq.list", "read"),
   op("rfq.detail", "read"),
   op("proposal.submit", "command"),

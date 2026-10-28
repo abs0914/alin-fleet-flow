@@ -174,6 +174,7 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
         s.bookings.unshift(b);
         return b;
       }
+      case "booking.list": return page(structuredClone(s.bookings));
       case "rfq.list": return page(structuredClone(s.rfqs));
       case "rfq.detail": return structuredClone(s.rfqs.find((r) => r.id === p.id));
       case "proposal.submit":
