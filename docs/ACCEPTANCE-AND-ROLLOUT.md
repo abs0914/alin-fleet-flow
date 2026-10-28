@@ -8,9 +8,9 @@ These run with `bunx vitest run` and test only portal code. They certify nothing
 
 | File | What it checks |
 |---|---|
-| `src/test/money.test.ts` | Display formatting (₱, two decimals), integer 70/30 estimate incl. odd-cent case, ₱9,601 / ₱9,000 net estimates, below-fee → review, peso input parsing, Asia/Manila time label |
+| `src/test/money.test.ts` | BigInt-safe split at MAX_SAFE_INTEGER, nonnegative gross/fee, positive quote; display formatting (₱, two decimals), integer 70/30 estimate incl. odd-cent case, ₱9,601 / ₱9,000 net estimates, below-fee → review, peso input parsing, Asia/Manila time label |
 | `src/test/permissions.test.ts` | Permission presentation per role/onboarding state, payout always disabled, tracking "Location unavailable"/stale labels |
-| `src/test/adapter.test.ts` | Production adapter fails closed (no config, unverified route, no token) with zero network calls; no demo fallback on API failure; demo conflict message |
+| `src/test/adapter.test.ts` | Fail closed (no config, unverified route, no token); no demo fallback; fixture-only request builder (path params, query allowlist, unsafe mapping/origin rejection, token only to configured origin, GET body rejected); command metadata required; unknown-outcome retry reuses key/payload |
 | `src/test/app-routing.test.tsx` | Route tree resolves `/` |
 
 ## Required fixtures
@@ -59,6 +59,8 @@ Isolated staging/sandbox environment with production payouts disabled; fleets A/
 | DOC-01 | Oversize/disallowed content, expired signed URL, foreign-fleet document ID | Upload/download denied; private file not leaked |
 | UI-01 | Keyboard/mobile, loading/empty/403/409/offline states, session logout | Accessible controls; clear states; sensitive caches cleared; no silent demo fallback |
 | UI-02 | Missing API mapping/configuration | Integration-required state; production mutations disabled; demo visibly labelled |
+| WALLET-01 | Attempt wallet cashout, peer transfer, or operator payout sourced from a customer AI Wallet balance | No such operation exists; fleet proceeds only via FleetSettlement after finance approval |
+| IDEM-01 | Replay command with same key+payload after timeout; same key+different payload; status lookup by key after client reload | Original result returned; conflict on changed payload; reconcilable status without re-send |
 | REG-01 | Existing independent-rider offers, customer bookings, branch/cargo workflows, finance reports | Existing supported flows preserved; sandbox excluded; fleet data only where authorized |
 
 UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level only.
@@ -85,6 +87,9 @@ UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level onl
 5. Configure CORS/redirects on the backend for the portal origin.
 
 ## Unresolved decisions
+
+- Backend command-status/reconciliation operation (by idempotency key) — required before any portal command is enabled.
+- `role-customer.md` is referenced as evidence for prepaid-only AI Wallet but is not in this repo; backend must confirm.
 
 - 70% funding reservation semantics/expiry; dispatch stays blocked until approved.
 - Driver assignment acknowledgment gating dispatch.

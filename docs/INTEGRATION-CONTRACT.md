@@ -110,6 +110,34 @@ All money movements use wallet locks/serializable equivalent, immutable balanced
 
 > The portal's `src/lib/money.ts` mirrors these examples **for display estimates only**. It is not authoritative and must never be used to move money.
 
+### 6a. AI Wallet scope (customer evidence)
+
+Per `role-customer.md` (stakeholder-supplied evidence; not present in this repository and not independently verified): the AI Wallet is **prepaid only** — top-up and spend. There is **no cashout and no peer-to-peer transfer**. This contract preserves that:
+
+- Cancellation holds (C) and funding reservations (F) are reservations against the customer's own prepaid balance; releasing C returns spendable balance inside the same wallet, never a cashout.
+- Fleet operator proceeds are **not** an AI Wallet balance and are **not** a transfer from the customer's wallet to the operator's wallet. They are a separate, authorized fleet-finance settlement entitlement (FleetSettlement) paid through existing verified payout rails after finance approval.
+- No portal, driver or customer operation may expose wallet withdrawal, wallet-to-wallet transfer or "pay out my wallet". The portal's "Request payout" refers only to the fleet settlement entitlement and stays disabled until an approved payout policy exists.
+- Refunds use compensating ledger entries back to the original prepaid wallet under approved policy.
+
+## 6b. Command idempotency and unknown-outcome reconciliation (portal requirement)
+
+The portal adapter (`src/lib/api/adapter.ts`) enforces client-side:
+
+1. Every command carries `Idempotency-Key` and `X-Correlation-Id`; the adapter refuses to send a command without them (before reading the auth token).
+2. A logical attempt is created once (`createCommandAttempt`) with a frozen payload. Network failure, timeout, 408/425/429 or 5xx is reported as **outcome unknown** and returns the same attempt.
+3. A retry of an unknown attempt reuses the identical key, correlation ID, expected version and body. The UI refuses a *different* payload for that action until the unknown attempt resolves. A fresh key is never minted after an unknown outcome.
+4. Pending attempts are held in memory only; a reload/sign-out loses them, so the backend must support reconciliation.
+
+Backend must provide (pending, not implemented or verified):
+
+- Same key + same canonical payload → original result (including after the original request completed server-side).
+- Same key + different payload → 409/422 conflict, no side effect.
+- A status read by idempotency key or correlation ID (e.g. a logical `commands.status` operation) so the portal can reconcile an unknown outcome after reload instead of re-sending.
+- Key retention covering the finance replay/reconciliation horizon.
+- Financial commands return pending/unknown states explicitly; provider timeouts are reconciled server-side, never resolved by a client retry with a new key.
+
+Request construction rules (portal): mappings use origin-relative `pathTemplate` with `:param` segments and an explicit query allowlist. Absolute URLs, `//host` network paths, traversal segments, missing/unused params and non-allowlisted query keys are rejected, and the final URL is checked against the configured API origin before the Bearer token is read. Tests in `src/test/adapter.test.ts` use fixture routes only (`/fixture/...`), not real ALiN routes.
+
 ## 7. Notifications and tracking
 
 Proposed event envelope: eventId, type, aggregateId/type, aggregateVersion, occurredAt UTC, correlationId, sandbox classification and minimal payload. Recipient/fleet scope derived server-side. Outbox created in same transaction as domain change. At-least-once delivery; consumers dedupe eventId and reject stale aggregate versions, refetch canonical state on gaps/reconnect. Durable inbox supports cursor replay; notifications do not carry secrets, document links or full recipient information.
