@@ -107,7 +107,9 @@ describe("VUTAI rate matrix reference (DRAFT)", () => {
     filterRows({ equipment: "20FTR", search: "talisay" });
     for (const r of RATE_ROWS) for (let i = 0; i < 4; i++) canCiteAsReference(r, i);
     expect(spy).not.toHaveBeenCalled();
-    const src = await import("@/lib/reference/rateMatrix?raw").then((m: { default: string }) => m.default).catch(() => "");
-    expect(src).not.toMatch(/adapter|useCommand|fetch\(|proposal\.submit|settlement|wallet\./);
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync("src/lib/reference/rateMatrix.ts", "utf8");
+    expect(src).not.toMatch(/^import /m);
+    expect(src).not.toMatch(/useCommand|fetch\(|\.mutate\(/);
   });
 });
