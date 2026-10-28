@@ -24,7 +24,7 @@ function Matrix() {
               <tr key={o.id}>
                 <td className="font-mono text-xs">{o.id}</td>
                 <td>{o.kind}</td>
-                <td className="font-mono text-xs">{o.route ? `${o.route.method} ${o.route.path}` : "unmapped"}</td>
+                <td className="font-mono text-xs">{o.route ? `${o.route.method} ${o.route.pathTemplate}` : "unmapped"}</td>
                 <td><span className={`badge ${prod.isAvailable(o.id) ? "badge-ok" : "badge-bad"}`}>{prod.isAvailable(o.id) ? "✓ live" : "✕ unavailable"}</span></td>
                 <td><span className="badge badge-warn">! demo fixture</span></td>
                 <td className="text-xs text-muted-foreground">{o.note}</td>

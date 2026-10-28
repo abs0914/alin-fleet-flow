@@ -61,7 +61,7 @@ export function parsePesoInput(input: string): Centavos | null {
   const m = /^(\d{1,16})(?:\.(\d{1,2}))?$/.exec(cleaned);
   if (!m) return null;
   const cents = (m[2] ?? "").padEnd(2, "0");
-  const v = BigInt(m[1]) * 100n + BigInt(cents);
+  const v = BigInt(m[1] ?? "0") * 100n + BigInt(cents);
   return v <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(v) : null;
 }
 

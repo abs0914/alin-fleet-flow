@@ -29,13 +29,13 @@ function Onboarding() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (step === 0) {
-      if (biz.name.trim().length < 2) e.name = "Enter your registered business name.";
-      if (!/^\d{3}-?\d{3}-?\d{3}(-?\d{3,5})?$/.test(biz.tin)) e.tin = "TIN looks like 123-456-789-000.";
-      if (!biz.contact.trim()) e.contact = "Who should we call?";
-      if (!/^\S+@\S+\.\S+$/.test(biz.email)) e.email = "Enter a valid email.";
-      if (!/^\+?63\s?9\d{2}\s?\d{3}\s?\d{4}$/.test(biz.phone.replace(/-/g, ""))) e.phone = "Use a PH mobile, e.g. +63 917 123 4567.";
+      if (biz.name.trim().length < 2) e["name"] = "Enter your registered business name.";
+      if (!/^\d{3}-?\d{3}-?\d{3}(-?\d{3,5})?$/.test(biz.tin)) e["tin"] = "TIN looks like 123-456-789-000.";
+      if (!biz.contact.trim()) e["contact"] = "Who should we call?";
+      if (!/^\S+@\S+\.\S+$/.test(biz.email)) e["email"] = "Enter a valid email.";
+      if (!/^\+?63\s?9\d{2}\s?\d{3}\s?\d{4}$/.test(biz.phone.replace(/-/g, ""))) e["phone"] = "Use a PH mobile, e.g. +63 917 123 4567.";
     }
-    if (step === 1 && !areas.trim()) e.areas = "Add at least one service area.";
+    if (step === 1 && !areas.trim()) e["areas"] = "Add at least one service area.";
     if (step === 2) for (const c of catalog.data?.onboardingChecklist ?? []) if (c.required && !docs[c.type]) e[c.type] = "Required document.";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -79,8 +79,8 @@ function Onboarding() {
         {step === 1 && (
           <label className="field">
             <span>Service areas (one per line)</span>
-            <textarea className="input min-h-28" value={areas} onChange={(e) => setAreas(e.target.value)} placeholder={"Metro Manila\nCalabarzon"} aria-invalid={!!errors.areas} />
-            {errors.areas && <span className="field-error">{errors.areas}</span>}
+            <textarea className="input min-h-28" value={areas} onChange={(e) => setAreas(e.target.value)} placeholder={"Metro Manila\nCalabarzon"} aria-invalid={!!errors["areas"]} />
+            {errors["areas"] && <span className="field-error">{errors["areas"]}</span>}
             <span className="text-xs text-muted-foreground">Serviceability is confirmed by the backend.</span>
           </label>
         )}
