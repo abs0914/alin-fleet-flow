@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PortalRouteImport } from './routes/_portal'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as PortalIndexRouteImport } from './routes/_portal/index'
+import { Route as PortalOnboardingRouteImport } from './routes/_portal/onboarding'
 
 const PortalRoute = PortalRouteImport.update({
   id: '/_portal',
@@ -21,30 +23,44 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof PortalRoute
+  '/': typeof PortalIndexRoute
   '/signin': typeof SigninRoute
+  '/onboarding': typeof PortalOnboardingRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof PortalRoute
   '/signin': typeof SigninRoute
+  '/onboarding': typeof PortalOnboardingRoute
+  '/': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_portal': typeof PortalRoute
+  '/_portal': typeof PortalRouteWithChildren
   '/signin': typeof SigninRoute
+  '/_portal/onboarding': typeof PortalOnboardingRoute
+  '/_portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signin'
+  fullPaths: '/' | '/signin' | '/onboarding'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signin'
-  id: '__root__' | '/_portal' | '/signin'
+  to: '/signin' | '/onboarding' | '/'
+  id: '__root__' | '/_portal' | '/signin' | '/_portal/onboarding' | '/_portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  PortalRoute: typeof PortalRoute
+  PortalRoute: typeof PortalRouteWithChildren
   SigninRoute: typeof SigninRoute
 }
 
@@ -64,11 +80,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_portal/': {
+      id: '/_portal/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/_portal/onboarding': {
+      id: '/_portal/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof PortalOnboardingRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
+interface PortalRouteChildren {
+  PortalOnboardingRoute: typeof PortalOnboardingRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalOnboardingRoute: PortalOnboardingRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  PortalRoute: PortalRoute,
+  PortalRoute: PortalRouteWithChildren,
   SigninRoute: SigninRoute,
 }
 export const routeTree = rootRouteImport
