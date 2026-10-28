@@ -11,6 +11,7 @@ These run with `bunx vitest run` and test only portal code. They certify nothing
 | `src/test/money.test.ts` | BigInt-safe split at MAX_SAFE_INTEGER, nonnegative gross/fee, positive quote; display formatting (₱, two decimals), integer 70/30 estimate incl. odd-cent case, ₱9,601 / ₱9,000 net estimates, below-fee → review, peso input parsing, Asia/Manila time label |
 | `src/test/permissions.test.ts` | Permission presentation per role/onboarding state, payout always disabled, tracking "Location unavailable"/stale labels |
 | `src/test/adapter.test.ts` | Fail closed (no config, unverified route, no token); no demo fallback; fixture-only request builder (path params, query allowlist, unsafe mapping/origin rejection, token only to configured origin, GET body rejected); command metadata required; unknown-outcome retry reuses key/payload |
+| `src/test/demo-assignment.test.ts` | DEMO-only simulation: seed consistency, compatible assignment commits, double-booking rejected, incompatible category/expired docs/expired license/revoked membership/overweight rejected, paired tractor+trailer reserved together, pre-pickup replacement releases old assets, post-pickup refused, proposal/vehicle payloads commit. **Not security** — ASSET-01/02 and DRIVER-04/05 remain pending on real backend |
 | `src/test/app-routing.test.tsx` | Route tree resolves `/` |
 
 ## Required fixtures
@@ -87,6 +88,9 @@ UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level onl
 5. Configure CORS/redirects on the backend for the portal origin.
 
 ## Unresolved decisions
+
+- Standard-job payment terms (holds, split, fee applicability): portal shows "awaiting backend confirmation"; ₱1,000 hold and 70/30 labels appear only on accepted RFQ quotes.
+- Demo fixtures are Cebu / Mandaue / Lapu-Lapu sample data only.
 
 - Backend command-status/reconciliation operation (by idempotency key) — required before any portal command is enabled.
 - `role-customer.md` is referenced as evidence for prepaid-only AI Wallet but is not in this repo; backend must confirm.
