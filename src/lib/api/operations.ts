@@ -51,6 +51,8 @@ export interface RouteBinding {
   method: HttpMethod;
   pathTemplate: string;
   query?: readonly string[];
+  /** Verified response-schema check. Required: a binding without it stays unavailable. */
+  validateResponse?: (body: unknown) => boolean;
 }
 
 export interface OperationMapping {

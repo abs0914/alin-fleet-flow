@@ -8,12 +8,14 @@ export class IntegrationRequiredError extends Error {
   readonly code = "INTEGRATION_UNAVAILABLE" as const;
   constructor(
     readonly operation: OperationId,
-    readonly reason: "config_missing" | "route_unverified" | "unknown_operation",
+    readonly reason: "config_missing" | "route_unverified" | "unknown_operation" | "response_schema_missing",
   ) {
     super(
       reason === "config_missing"
         ? "Integration required: the ALiN API origin isn't configured for this portal."
-        : `Integration required: "${operation}" has no verified backend route yet.`,
+        : reason === "response_schema_missing"
+          ? `Integration required: "${operation}" has no verified response schema yet.`
+          : `Integration required: "${operation}" has no verified backend route yet.`,
     );
     this.name = "IntegrationRequiredError";
   }
@@ -28,6 +30,7 @@ export class RequestBuildError extends Error {
       | "ORIGIN_MISMATCH"
       | "MISSING_PARAM"
       | "UNUSED_PARAM"
+      | "INVALID_PARAM"
       | "QUERY_NOT_ALLOWED"
       | "INVALID_QUERY_VALUE"
       | "BODY_NOT_ALLOWED"
@@ -151,6 +154,7 @@ function parseOrigin(raw: string): URL {
 
 const SEGMENT = /^[A-Za-z0-9._~-]+$/;
 const PARAM = /^:([A-Za-z][A-Za-z0-9_]*)$/;
+const PARAM_VALUE = /^[A-Za-z0-9._~-]{1,128}$/;
 
 /**
  * Build the destination URL for a verified mapping. Rejects absolute,
@@ -175,6 +179,9 @@ export function buildUrl(apiOrigin: string, route: RouteBinding, input: RequestI
         const name = m[1] as string;
         const raw = params[name];
         if (raw === undefined || String(raw) === "") throw new RequestBuildError("MISSING_PARAM", `Missing path parameter "${name}".`);
+        const value = String(raw);
+        // Dynamic IDs must be a single opaque segment: no traversal, separators, encodings or control chars.
+        if (!PARAM_VALUE.test(value) || /^\.+$/.test(value)) throw new RequestBuildError("INVALID_PARAM", `Path parameter "${name}" is not a valid identifier.`);
         used.add(name);
         return encodeURIComponent(String(raw));
       }
@@ -223,6 +230,7 @@ export function createAdapter(cfg: AdapterConfig): Adapter {
     const m = ops.find((o) => o.id === id);
     if (!m) throw new IntegrationRequiredError(id, "unknown_operation");
     if (m.status !== "verified" || !m.route) throw new IntegrationRequiredError(id, "route_unverified");
+    if (typeof m.route.validateResponse !== "function") throw new IntegrationRequiredError(id, "response_schema_missing");
     return m as OperationMapping & { route: RouteBinding };
   };
 
@@ -266,12 +274,27 @@ export function createAdapter(cfg: AdapterConfig): Adapter {
         if (m.kind === "command" && meta) throw new OutcomeUnknownError(attemptOf(id, input, meta));
         throw new ApiError("NETWORK_ERROR", "Couldn't reach ALiN. Check your connection and retry.", 0);
       }
+      if (res.ok) {
+        // A 2xx whose body can't be parsed or fails the verified schema is not proof of success.
+        let parsed: unknown;
+        let valid = false;
+        try {
+          parsed = await res.json();
+          valid = m.route.validateResponse?.(parsed) === true;
+        } catch {
+          valid = false;
+        }
+        if (!valid) {
+          if (m.kind === "command" && meta) throw new OutcomeUnknownError(attemptOf(id, input, meta));
+          throw new ApiError("MALFORMED_RESPONSE", "ALiN sent an unexpected response. Please retry.", res.status);
+        }
+        return parsed as T;
+      }
       const body = (await res.json().catch(() => ({}))) as { message?: string; code?: string; requestId?: string };
-      if (!res.ok) {
+      {
         if (m.kind === "command" && meta && isUnknownStatus(res.status)) throw new OutcomeUnknownError(attemptOf(id, input, meta));
         throw new ApiError(body.code ?? `HTTP_${res.status}`, body.message ?? "Request failed", res.status, body.requestId);
       }
-      return body as T;
     },
   };
 }
