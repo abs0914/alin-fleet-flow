@@ -114,6 +114,26 @@ export function seed(): DemoState {
   };
 }
 
+interface DemoPayload {
+  id?: string;
+  name?: string;
+  phone?: string;
+  rfqId?: string;
+  jobId?: string;
+  vehicleId?: string;
+  driverId?: string;
+  totalCentavos?: number;
+  inclusions?: string[];
+  exclusions?: string[];
+  availableFrom?: string;
+  validUntil?: string;
+  draft?: boolean;
+  ids?: string[];
+  business?: Record<string, string>;
+  areas?: string[];
+  docs?: Record<string, string>;
+}
+
 export interface DemoBackend {
   state: DemoState;
   handle(op: OperationId, payload?: unknown): Promise<unknown>;
@@ -125,24 +145,30 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
   const s = initial;
   const handle = async (op: OperationId, payload?: unknown): Promise<unknown> => {
     await new Promise((r) => setTimeout(r, 150));
-    const p = (payload ?? {}) as Record<string, any>;
+    const p = (payload ?? {}) as DemoPayload;
+    const need = <K extends keyof DemoPayload>(k: K): NonNullable<DemoPayload[K]> => {
+      const v = p[k];
+      if (v === undefined || v === null) throw new DemoError("VALIDATION_FAILED", `Missing ${String(k)}.`);
+      return v as NonNullable<DemoPayload[K]>;
+    };
     switch (op) {
       case "identity.getContext": return structuredClone(s.identity);
       case "catalog.get": return structuredClone(s.catalog);
       case "fleet.get": return structuredClone({ ...s.identity.fleet, ...s.onboarding });
       case "fleet.submitOnboarding":
       case "fleet.resubmit":
-        s.onboarding = { ...s.onboarding, ...p };
+        s.onboarding = { business: p.business ?? s.onboarding.business, areas: p.areas ?? s.onboarding.areas, docs: p.docs ?? s.onboarding.docs };
         s.identity.fleet.onboarding = "submitted";
         return { status: "submitted" };
       case "vehicle.list": return page(structuredClone(s.vehicles));
       case "vehicle.upsert": {
-        const v = p as Vehicle;
+        const v = payload as Omit<Vehicle, "id" | "approval" | "availability" | "version"> & { id?: string };
         if (s.vehicles.some((x) => x.plate === v.plate && x.id !== v.id)) throw new DemoError("VALIDATION_FAILED", "A vehicle with that plate already exists.");
         if (v.id) {
-          const i = s.vehicles.findIndex((x) => x.id === v.id);
-          s.vehicles[i] = { ...s.vehicles[i], ...v, version: s.vehicles[i].version + 1 };
-          return s.vehicles[i];
+          const cur = s.vehicles.find((x) => x.id === v.id);
+          if (!cur) throw new DemoError("FORBIDDEN", "Not found");
+          Object.assign(cur, v, { version: cur.version + 1 });
+          return cur;
         }
         const nv: Vehicle = { ...v, id: `veh-${s.vehicles.length + 1}-${Date.now() % 1000}`, approval: "pending_review", availability: "available", version: 1 };
         s.vehicles.push(nv);
@@ -150,7 +176,7 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
       }
       case "driver.list": return page(structuredClone(s.drivers));
       case "driver.invite": {
-        const d: Driver = { id: `drv-${Date.now() % 10000}`, name: p.name, phoneMasked: `+63 9•• ••• ${String(p.phone).slice(-4)}`, status: "invited", membership: "pending", licenseValidUntil: new Date(Date.now() + 365 * 864e5).toISOString(), availability: "off", version: 1 };
+        const d: Driver = { id: `drv-${Date.now() % 10000}`, name: need("name"), phoneMasked: `+63 9•• ••• ${need("phone").slice(-4)}`, status: "invited", membership: "pending", licenseValidUntil: new Date(Date.now() + 365 * 864e5).toISOString(), availability: "off", version: 1 };
         s.drivers.push(d);
         return d;
       }
@@ -183,7 +209,7 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
         if (!r || r.status !== "open") throw new DemoError("QUOTE_EXPIRED", "This RFQ is closed.");
         const prev = r.myProposals.filter((x) => x.status === "submitted");
         prev.forEach((x) => (x.status = "withdrawn"));
-        const pr: Proposal = { id: `prp-${Date.now() % 10000}`, rfqId: r.id, version: (r.myProposals.at(-1)?.version ?? 0) + 1, totalCentavos: p.totalCentavos, inclusions: p.inclusions, exclusions: p.exclusions, availableFrom: p.availableFrom, validUntil: p.validUntil, status: p.draft ? "draft" : "submitted" };
+        const pr: Proposal = { id: `prp-${Date.now() % 10000}`, rfqId: r.id, version: (r.myProposals.at(-1)?.version ?? 0) + 1, totalCentavos: need("totalCentavos"), inclusions: need("inclusions"), exclusions: p.exclusions ?? [], availableFrom: need("availableFrom"), validUntil: need("validUntil"), status: p.draft ? "draft" : "submitted" };
         r.myProposals.push(pr);
         return pr;
       }
@@ -193,7 +219,8 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
       }
       case "assignment.create":
       case "assignment.replace": {
-        const b = s.bookings.find((x) => x.id === p.jobId)!;
+        const b = s.bookings.find((x) => x.id === p.jobId);
+        if (!b) throw new DemoError("FORBIDDEN", "Not found");
         if (["picked_up", "in_transit", "delivered"].includes(b.state)) throw new DemoError("POLICY_UNRESOLVED", "After pickup, reassignment needs the operations workflow.");
         const v = s.vehicles.find((x) => x.id === p.vehicleId);
         const d = s.drivers.find((x) => x.id === p.driverId);
@@ -210,7 +237,7 @@ export function createDemoBackend(initial: DemoState = seed()): DemoBackend {
       case "settlement.statement": throw new DemoError("INTEGRATION_UNAVAILABLE", "Statements are generated by the backend only. Not available in demo.");
       case "settlement.payoutRequest": throw new DemoError("POLICY_UNRESOLVED", "No approved payout policy.");
       case "notifications.list": return page(structuredClone(s.notices));
-      case "notifications.markRead": s.notices.forEach((n) => { if ((p.ids as string[]).includes(n.id)) n.read = true; }); return { ok: true };
+      case "notifications.markRead": s.notices.forEach((n) => { if ((p.ids ?? []).includes(n.id)) n.read = true; }); return { ok: true };
       default: throw new DemoError("INTEGRATION_UNAVAILABLE", `Not available in demo: ${op}`);
     }
   };
