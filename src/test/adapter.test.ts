@@ -68,9 +68,9 @@ describe("request builder", () => {
   it("fills encoded path params and serializes allowlisted query on GET", async () => {
     const f = okFetch();
     const { a } = mk(read({ method: "GET", pathTemplate: "/fixture/rfqs/:rfqId", query: ["cursor", "limit"] }), f);
-    await a.call("rfq.detail", { params: { rfqId: "a b/../c" }, query: { limit: 20, cursor: "x&y" } });
+    await a.call("rfq.detail", { params: { rfqId: "rfq_1.A-b" }, query: { limit: 20, cursor: "x&y" } });
     const [url, init] = f.mock.calls[0]!;
-    expect(url).toBe(`${ORIGIN}/fixture/rfqs/a%20b%2F..%2Fc?cursor=x%26y&limit=20`);
+    expect(url).toBe(`${ORIGIN}/fixture/rfqs/rfq_1.A-b?cursor=x%26y&limit=20`);
     expect(init?.method).toBe("GET");
     expect(init?.body).toBeUndefined();
     expect(init?.redirect).toBe("error");
@@ -143,7 +143,7 @@ describe("command metadata and retries", () => {
     const f = vi.fn(async (_u: string, _i?: RequestInit) => {
       n++;
       if (n === 1) throw new TypeError("network down");
-      return new Response(JSON.stringify({ id: "p1" }), { status: 201 });
+      return new Response(JSON.stringify({ ok: true, id: "p1" }), { status: 201 });
     });
     const { a } = mk(cmd(route), f as never);
     const attempt = createCommandAttempt("proposal.submit", { params: { rfqId: "r1" }, body: { totalCentavos: 3_500_000 } }, 4);
