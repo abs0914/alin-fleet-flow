@@ -38,3 +38,33 @@ describe("wallet display arithmetic (display-only)", () => {
     expect(formatManila("2026-01-01T00:00:00Z")).toMatch(/08:00 PHT \(Asia\/Manila\)$/);
   });
 });
+
+describe("money boundaries (overflow-safe)", () => {
+  const MAX = Number.MAX_SAFE_INTEGER;
+  it("splits MAX_SAFE_INTEGER exactly via BigInt", () => {
+    const { p1, p2 } = estimateSplit(MAX);
+    const expected = (BigInt(MAX) * 70n + 50n) / 100n;
+    expect(BigInt(p1)).toBe(expected);
+    expect(BigInt(p1) + BigInt(p2)).toBe(BigInt(MAX));
+    expect(Number.isSafeInteger(p1) && Number.isSafeInteger(p2)).toBe(true);
+  });
+  it("splits Q=1 centavo as 1/0 (half-up)", () => {
+    expect(estimateSplit(1)).toEqual({ p1: 1, p2: 0 });
+  });
+  it("rejects unsafe, negative and fractional quote totals", () => {
+    expect(() => estimateSplit(MAX + 1)).toThrow(RangeError);
+    expect(() => estimateSplit(-1)).toThrow(RangeError);
+    expect(() => estimateSplit(1.5)).toThrow(RangeError);
+  });
+  it("rejects negative gross or fee", () => {
+    expect(() => estimateNet(-1, 0)).toThrow(RangeError);
+    expect(() => estimateNet(100, -1)).toThrow(RangeError);
+    expect(estimateNet(0, 0)).toBe(0);
+    expect(estimateNet(MAX, 0)).toBe(MAX);
+  });
+  it("parses peso input up to the safe limit and rejects beyond", () => {
+    expect(parsePesoInput("90071992547409.91")).toBe(MAX);
+    expect(parsePesoInput("90071992547409.92")).toBeNull();
+    expect(formatPHP(MAX)).toBe("₱90,071,992,547,409.91");
+  });
+});
