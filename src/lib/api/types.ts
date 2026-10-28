@@ -40,6 +40,7 @@ export interface Vehicle {
   approval: VehicleStatus;
   availability: Availability;
   blockReason?: string;
+  currentJobId?: string;
   version: number;
 }
 
@@ -119,9 +120,11 @@ export interface Booking {
   categoryId: string;
   state: ExecState;
   acceptedProposal?: { id: string; version: number; totalCentavos: Centavos };
+  weightKg: number;
   grossCentavos: Centavos;
-  feeCentavos: Centavos;
-  feeKind: "intro" | "regular";
+  /** null = payment/fee terms for this source await backend confirmation. */
+  feeCentavos: Centavos | null;
+  feeKind: "intro" | "regular" | null;
   holdState: "none" | "active" | "released" | "release_pending";
   fundingVerified: "unknown" | "verified" | "insufficient";
   pickupCapture: CaptureState;
