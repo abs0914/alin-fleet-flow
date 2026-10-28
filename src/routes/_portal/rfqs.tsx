@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { pageHead } from "@/lib/head";
@@ -83,6 +83,7 @@ function RfqDetail({ r, catLabel }: { r: Rfq; catLabel: string }) {
         {r.temperatureC && <div><dt className="text-muted-foreground">Temperature</dt><dd>{r.temperatureC.min}°C to {r.temperatureC.max}°C</dd></div>}
         {r.liftingKg && <div><dt className="text-muted-foreground">Lifting</dt><dd>{r.liftingKg.toLocaleString()} kg</dd></div>}
         {r.container && <div><dt className="text-muted-foreground">Container</dt><dd>{r.container}</dd></div>}
+        {r.containerLengthFt && <div><dt className="text-muted-foreground">Container length option</dt><dd>{r.containerLengthFt} ft ({r.containerLengthFt}FTR)</dd></div>}
       </dl>
 
       <div>
@@ -104,6 +105,9 @@ function RfqDetail({ r, catLabel }: { r: Rfq; catLabel: string }) {
       {r.status === "open" && !hasSelected && (
         <form className="space-y-3 rounded-md border p-4" onSubmit={(e) => { e.preventDefault(); send(false); }} noValidate>
           <h3 className="text-sm font-semibold">{r.myProposals.some((p) => p.status === "submitted") ? "Send a revised version" : "New proposal"}</h3>
+          <p className="rounded-md border border-dashed p-2 text-xs text-muted-foreground" data-testid="rate-reference-help">
+            Need a reference? See the <Link to="/rates" className="font-semibold underline">DRAFT VUTAI rate matrix</Link> (2026, exclusive of VAT, unconfirmed). It is reference only: enter your amount manually; nothing is copied or applied automatically.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="field"><span>Total amount (PHP)</span><input className="input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="35,000.00" /></label>
             <label className="field"><span>Valid for (hours)</span><input className="input" type="number" min={1} max={168} value={validHours} onChange={(e) => setValidHours(e.target.value)} /></label>
