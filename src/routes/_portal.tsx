@@ -12,14 +12,13 @@ import type { Notice, Page } from "@/lib/api/types";
 export const Route = createFileRoute("/_portal")({ component: PortalLayout });
 
 const NAV = [
-  { to: "/", label: "Overview", icon: Gauge },
+  { to: "/", label: "Dashboard", icon: Gauge },
   { to: "/onboarding", label: "Onboarding", icon: ClipboardCheck },
   { to: "/jobs", label: "Jobs", icon: Briefcase },
   { to: "/rfqs", label: "RFQs & Proposals", icon: FileText },
   { to: "/rates", label: "Rate Reference", icon: Table2 },
   { to: "/vehicles", label: "Fleet Vehicles", icon: Truck },
   { to: "/drivers", label: "Drivers", icon: Users },
-  { to: "/tracking", label: "Tracking", icon: MapPin },
   { to: "/settlements", label: "Settlements", icon: Wallet },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/settings", label: "Fleet Settings", icon: Settings },
