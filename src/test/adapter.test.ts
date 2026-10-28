@@ -18,8 +18,10 @@ import { OPERATIONS, type OperationMapping, type RouteBinding } from "@/lib/api/
 const ORIGIN = "https://api.fixture.test";
 const TOKEN = "fixture-token-SECRET";
 
-const read = (route: RouteBinding): OperationMapping[] => [{ id: "rfq.detail", kind: "read", status: "verified", route }];
-const cmd = (route: RouteBinding): OperationMapping[] => [{ id: "proposal.submit", kind: "command", status: "verified", route }];
+const okSchema = (b: unknown) => typeof b === "object" && b !== null && (b as { ok?: unknown }).ok === true;
+const withSchema = (route: RouteBinding): RouteBinding => ("validateResponse" in route ? route : { ...route, validateResponse: okSchema });
+const read = (route: RouteBinding): OperationMapping[] => [{ id: "rfq.detail", kind: "read", status: "verified", route: withSchema(route) }];
+const cmd = (route: RouteBinding): OperationMapping[] => [{ id: "proposal.submit", kind: "command", status: "verified", route: withSchema(route) }];
 const okFetch = () => vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
 function mk(ops: OperationMapping[], fetchImpl: ReturnType<typeof okFetch>, token: string | null = TOKEN) {
