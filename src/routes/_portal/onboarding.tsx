@@ -79,7 +79,7 @@ function Onboarding() {
         {step === 1 && (
           <label className="field">
             <span>Service areas (one per line)</span>
-            <textarea className="input min-h-28" value={areas} onChange={(e) => setAreas(e.target.value)} placeholder={"Metro Manila\nCalabarzon"} aria-invalid={!!errors["areas"]} />
+            <textarea className="input min-h-28" value={areas} onChange={(e) => setAreas(e.target.value)} placeholder={"Cebu City\nMandaue City\nLapu-Lapu City"} aria-invalid={!!errors["areas"]} />
             {errors["areas"] && <span className="field-error">{errors["areas"]}</span>}
             <span className="text-xs text-muted-foreground">Serviceability is confirmed by the backend.</span>
           </label>
