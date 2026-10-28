@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_portal/")({
   component: Overview,
 });
 
-function Count({ label, q, to }: { label: string; q: { data?: { items: unknown[] }; error: unknown; isLoading: boolean }; to: string }) {
+function Count({ label, q, to }: { label: string; q: { data?: { items: unknown[] } | undefined; error: unknown; isLoading: boolean }; to: string }) {
   return (
     <Link to={to} className="card block hover:border-foreground/40">
       <p className="text-sm text-muted-foreground">{label}</p>

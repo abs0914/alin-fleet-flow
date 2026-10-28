@@ -66,7 +66,7 @@ function Vehicles() {
   );
 }
 
-function VehicleForm({ form, setForm, cat, vehicles }: { form: Form; setForm: (f: Form | null) => void; cat?: Catalog; vehicles: Vehicle[] }) {
+function VehicleForm({ form, setForm, cat, vehicles }: { form: Form; setForm: (f: Form | null) => void; cat?: Catalog | undefined; vehicles: Vehicle[] }) {
   const save = useCommand<Vehicle>("vehicle.upsert", ["vehicle.list"]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
@@ -78,13 +78,13 @@ function VehicleForm({ form, setForm, cat, vehicles }: { form: Form; setForm: (f
 
   const submit = () => {
     const e: Record<string, string> = {};
-    if (!/^[A-Z]{3}\s?\d{3,4}$/i.test(form.plate.trim())) e.plate = "Plate like ABC 1234.";
-    if (!form.categoryId) e.categoryId = "Choose a category from the backend catalog.";
-    for (const k of ["l", "w", "h"] as const) if (!(Number(form[k]) > 0)) e.dims = "Enter all dimensions in cm.";
-    if (!isCoupled || c?.taxonomy === "Trailer") if (!(Number(form.capacityKg) > 0)) e.capacityKg = "Capacity must be above 0 kg.";
-    if (isReefer && !(Number(form.reeferMin) < Number(form.reeferMax))) e.reefer = "Min temperature must be below max.";
-    if (isBoom && !(Number(form.lifting) > 0)) e.lifting = "Enter lifting capacity.";
-    if (!form.docsUntil) e.docsUntil = "Enter document validity date.";
+    if (!/^[A-Z]{3}\s?\d{3,4}$/i.test(form.plate.trim())) e["plate"] = "Plate like ABC 1234.";
+    if (!form.categoryId) e["categoryId"] = "Choose a category from the backend catalog.";
+    for (const k of ["l", "w", "h"] as const) if (!(Number(form[k]) > 0)) e["dims"] = "Enter all dimensions in cm.";
+    if (!isCoupled || c?.taxonomy === "Trailer") if (!(Number(form.capacityKg) > 0)) e["capacityKg"] = "Capacity must be above 0 kg.";
+    if (isReefer && !(Number(form.reeferMin) < Number(form.reeferMax))) e["reefer"] = "Min temperature must be below max.";
+    if (isBoom && !(Number(form.lifting) > 0)) e["lifting"] = "Enter lifting capacity.";
+    if (!form.docsUntil) e["docsUntil"] = "Enter document validity date.";
     setErrors(e);
     if (Object.keys(e).length) return;
     save.mutate(

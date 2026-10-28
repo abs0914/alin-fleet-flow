@@ -176,7 +176,7 @@ function BookingDetail({ b }: { b: Booking }) {
               op={b.assignment ? "assignment.replace" : "assignment.create"}
               disabledReason={perm && !perm.enabled ? perm.reason : !driverId || !vehicleId ? "Pick a driver and a vehicle." : undefined}
               pending={assign.isPending}
-              onClick={() => assign.mutate({ payload: { jobId: b.id, driverId, vehicleId }, version: b.version }, { onSuccess: () => toast.success("Assignment saved by server."), onError: (e) => toast.error(e.message) })}
+              onClick={() => assign.mutate({ payload: { jobId: b.id, driverId, vehicleId }, version: b.version }, { onSuccess: () => toast.success("Assignment saved."), onError: (e) => toast.error(e.message) })}
             >
               Save assignment
             </GuardedButton>

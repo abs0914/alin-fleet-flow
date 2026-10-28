@@ -67,12 +67,12 @@ export function GuardedButton({
   type = "button",
 }: {
   op: OperationId;
-  disabledReason?: string;
+  disabledReason?: string | undefined;
   children: ReactNode;
-  onClick?: () => void;
-  variant?: string;
-  pending?: boolean;
-  type?: "button" | "submit";
+  onClick?: (() => void) | undefined;
+  variant?: string | undefined;
+  pending?: boolean | undefined;
+  type?: "button" | "submit" | undefined;
 }) {
   const adapter = useAdapter();
   const reason = !adapter.isAvailable(op) ? "Integration required" : disabledReason;

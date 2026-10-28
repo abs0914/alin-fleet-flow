@@ -16,5 +16,6 @@
 - `src/lib/money.ts` is display/estimate only with integer centavos — real calculations are backend-owned.
 - Session and caches are in-memory and cleared on sign-out — no sensitive data in browser storage.
 - Portal pages live under the `_portal` pathless layout; developer tooling lives outside it (`/dev/*`).
-- tsconfig strict index/optional-property flags are relaxed to keep adapter/demo code readable.
+- Keep tsconfig strict flags (noUncheckedIndexedAccess, exactOptionalPropertyTypes, noPropertyAccessFromIndexSignature) on; fix source rather than weaken them.
+- Route mappings are origin-relative templates with query allowlists; commands go through frozen CommandAttempts so retries after unknown outcomes reuse the same idempotency key.
 - Backend/mobile contract and acceptance plan live in `docs/`.

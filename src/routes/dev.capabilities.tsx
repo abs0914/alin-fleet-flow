@@ -9,7 +9,7 @@ export const Route = createFileRoute("/dev/capabilities")({
 });
 
 function Matrix() {
-  const origin = import.meta.env.VITE_ALIN_API_ORIGIN as string | undefined;
+  const origin = import.meta.env["VITE_ALIN_API_ORIGIN"] as string | undefined;
   const prod = createAdapter({ mode: "production", apiOrigin: origin });
   return (
     <main className="mx-auto max-w-5xl p-6">
@@ -24,7 +24,7 @@ function Matrix() {
               <tr key={o.id}>
                 <td className="font-mono text-xs">{o.id}</td>
                 <td>{o.kind}</td>
-                <td className="font-mono text-xs">{o.route ? `${o.route.method} ${o.route.path}` : "unmapped"}</td>
+                <td className="font-mono text-xs">{o.route ? `${o.route.method} ${o.route.pathTemplate}` : "unmapped"}</td>
                 <td><span className={`badge ${prod.isAvailable(o.id) ? "badge-ok" : "badge-bad"}`}>{prod.isAvailable(o.id) ? "✓ live" : "✕ unavailable"}</span></td>
                 <td><span className="badge badge-warn">! demo fixture</span></td>
                 <td className="text-xs text-muted-foreground">{o.note}</td>

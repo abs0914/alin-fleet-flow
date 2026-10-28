@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   Bell, Briefcase, FileText, Gauge, LogOut, MapPin, Menu, Settings, Truck, Users, Wallet, X, ClipboardCheck,
 } from "lucide-react";
+import logo from "@/assets/alinmove_logo.png.asset.json";
 import { useIdentity, useSession, useOp } from "@/lib/session";
 import { ROLE_LABEL } from "@/lib/permissions";
 import { IntegrationRequiredError } from "@/lib/api/adapter";
@@ -23,12 +24,9 @@ const NAV = [
   { to: "/settings", label: "Fleet Settings", icon: Settings },
 ] as const;
 
-export function Wordmark() {
-  return (
-    <span className="font-display text-xl font-extrabold tracking-tight">
-      <span className="rounded bg-primary px-1.5 py-0.5 text-primary-foreground">ALiN</span> Move
-    </span>
-  );
+export function Wordmark({ className = "h-9" }: { className?: string }) {
+  // Official ALiN Move logo; width auto keeps the 4034×1056 aspect ratio.
+  return <img src={logo.url} alt="ALiN Move" width={4034} height={1056} className={`${className} w-auto max-w-full object-contain`} />;
 }
 
 function PortalLayout() {
@@ -94,7 +92,7 @@ function PortalLayout() {
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
             <button className="btn-ghost lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu"><Menu className="size-5" /></button>
-            <span className="lg:hidden"><Wordmark /></span>
+            <span className="lg:hidden"><Wordmark className="h-7" /></span>
             <span className={`badge ${connection.tone} ml-auto lg:ml-0`} role="status">{connection.label}</span>
             <div className="ml-auto hidden items-center gap-3 text-right text-sm sm:flex">
               {id.data ? (

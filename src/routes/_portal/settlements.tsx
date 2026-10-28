@@ -24,6 +24,7 @@ function Settlements() {
   return (
     <>
       <PageHeader title="Settlements" subtitle="Totals come from the ALiN backend. Your fleet receives the proceeds; the platform fee is deducted once." actions={<GuardedButton op="settlement.payoutRequest" disabledReason={payout?.reason ?? "Payout requests are off until an approved payout policy exists."}>Request payout</GuardedButton>} />
+      <p className="mb-4 text-xs text-muted-foreground">Fleet proceeds are a separate fleet-finance settlement, not an AI Wallet balance. The AI Wallet is prepaid only — no cashout or transfers.</p>
       {q.isLoading && <Loading />}
       {q.error && <ErrorState error={q.error} onRetry={() => q.refetch()} />}
       {q.data && (q.data.items.length === 0 ? <Empty>No settlements yet.</Empty> : (
