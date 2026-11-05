@@ -1,6 +1,39 @@
 import { OPERATIONS, type OperationId, type OperationMapping, type RouteBinding } from "./operations";
 import type { ApiErrorCode, CommandMeta } from "./types";
 import { createDemoBackend, type DemoBackend } from "../demo/backend";
+import { ALIN_API_ORIGIN, LOGIN_CONTRACT, LoginError, loginResponseSchema, type LoginCredentials, type LoginSession } from "./auth";
+
+/** Explicit user-authorized login attempt, not a verified fleet-operation binding. */
+export async function loginExistingAccount(credentials: LoginCredentials, fetchImpl: typeof fetch = fetch): Promise<LoginSession> {
+  const url = buildUrl(ALIN_API_ORIGIN, LOGIN_CONTRACT);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    let response: Response;
+    try {
+      response = await fetchImpl(url.toString(), {
+        method: LOGIN_CONTRACT.method,
+        headers: { accept: "application/json", "content-type": "application/json" },
+        body: JSON.stringify({ email: credentials.email.trim(), password: credentials.password }),
+        mode: "cors", credentials: "omit", redirect: "error", cache: "no-store", signal: controller.signal,
+      });
+    } catch {
+      // Browsers cannot distinguish CORS rejection from offline/DNS/TLS errors.
+      throw new LoginError("NETWORK_OR_CORS");
+    }
+    if (!response.ok) {
+      throw new LoginError(response.status === 401 || response.status === 400 ? "INVALID_CREDENTIALS"
+        : response.status === 403 ? "FORBIDDEN" : response.status === 429 ? "RATE_LIMITED" : "UNAVAILABLE");
+    }
+    let body: unknown;
+    try { body = await response.json(); } catch { throw new LoginError("INVALID_RESPONSE"); }
+    const result = loginResponseSchema.safeParse(body);
+    if (!result.success) throw new LoginError("INVALID_RESPONSE");
+    return result.data;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 export type AppMode = "production" | "demo";
 
