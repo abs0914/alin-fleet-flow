@@ -15,6 +15,7 @@
 - Production adapter fails closed and never falls back to demo; demo lives only in `src/lib/demo/` in memory — avoids fake success claims.
 - `src/lib/money.ts` is display/estimate only with integer centavos — real calculations are backend-owned.
 - Session and caches are in-memory and cleared on sign-out — no sensitive data in browser storage.
+- Existing-account login is an explicit adapter entry point using the confirmed canonical backend contract; store only the expiring access token in memory, never infer fleet grants from login, and leave business bindings blocked until staging verification.
 - Portal pages live under the `_portal` pathless layout; developer tooling lives outside it (`/dev/*`).
 - Keep tsconfig strict flags (noUncheckedIndexedAccess, exactOptionalPropertyTypes, noPropertyAccessFromIndexSignature) on; fix source rather than weaken them.
 - Route mappings are origin-relative templates with query allowlists; commands go through frozen CommandAttempts so retries after unknown outcomes reuse the same idempotency key.

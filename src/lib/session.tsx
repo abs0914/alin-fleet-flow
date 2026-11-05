@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAdapter,
@@ -6,6 +6,7 @@ import {
   OutcomeUnknownError,
   sameLogicalPayload,
   sendAttempt,
+  loginExistingAccount,
   type Adapter,
   type AppMode,
   type CommandAttempt,
@@ -13,6 +14,7 @@ import {
 } from "./api/adapter";
 import type { OperationId } from "./api/operations";
 import type { IdentityContext } from "./api/types";
+import { ALIN_API_ORIGIN, type LoginCredentials, type LoginSession } from "./api/auth";
 
 interface Session {
   mode: AppMode;
@@ -22,6 +24,7 @@ interface Session {
 interface Ctx {
   session: Session | null;
   start: (mode: AppMode) => void;
+  signIn: (credentials: LoginCredentials) => Promise<boolean>;
   signOut: () => void;
 }
 
@@ -31,15 +34,18 @@ const SessionCtx = createContext<Ctx | null>(null);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
+  const auth = useRef<LoginSession | null>(null);
+  const generation = useRef(0);
   const start = useCallback(
     (mode: AppMode) => {
+      generation.current += 1;
+      auth.current = null;
       qc.clear();
       setSession({
         mode,
         adapter: createAdapter({
           mode,
-          apiOrigin: mode === "production" ? (import.meta.env["VITE_ALIN_API_ORIGIN"] as string | undefined) : undefined,
-          // Existing ALiN Supabase auth wiring is unverified; no token source yet.
+          apiOrigin: mode === "production" ? ALIN_API_ORIGIN : undefined,
           getAccessToken: async () => null,
         }),
       });
@@ -47,10 +53,35 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [qc],
   );
   const signOut = useCallback(() => {
+    generation.current += 1;
+    auth.current = null;
     qc.clear(); // clear tenant-scoped caches
     setSession(null);
   }, [qc]);
-  const value = useMemo(() => ({ session, start, signOut }), [session, start, signOut]);
+  const signIn = useCallback(async (credentials: LoginCredentials) => {
+    signOut();
+    const attempt = generation.current;
+    const result = await loginExistingAccount(credentials);
+    if (attempt !== generation.current) return false; // Ignore a login completed after logout/demo change.
+    auth.current = result;
+    setSession({
+      mode: "production",
+      adapter: createAdapter({
+        mode: "production", apiOrigin: ALIN_API_ORIGIN,
+        getAccessToken: async () => {
+          if (attempt !== generation.current || !auth.current || Date.now() >= auth.current.expiresAt) return null;
+          return auth.current.accessToken;
+        },
+      }),
+    });
+    return true;
+  }, [signOut]);
+  useEffect(() => {
+    if (!auth.current) return;
+    const timer = setTimeout(signOut, Math.max(0, auth.current.expiresAt - Date.now()));
+    return () => clearTimeout(timer);
+  }, [session, signOut]);
+  const value = useMemo(() => ({ session, start, signIn, signOut }), [session, start, signIn, signOut]);
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;
 }
 
@@ -70,7 +101,7 @@ export function useIdentity() {
   const { session } = useSession();
   return useQuery({
     queryKey: [session?.mode, "identity.getContext"],
-    queryFn: () => session!.adapter.call<IdentityContext>("identity.getContext"),
+    queryFn: () => { if (!session) throw new Error("No session"); return session.adapter.call<IdentityContext>("identity.getContext"); },
     enabled: !!session,
     retry: false,
   });
@@ -81,7 +112,7 @@ export function useOp<T>(op: OperationId, input?: RequestInput) {
   const id = useIdentity();
   return useQuery({
     queryKey: [session?.mode, id.data?.fleet.id ?? "nofleet", op, input ?? null],
-    queryFn: () => session!.adapter.call<T>(op, input),
+    queryFn: () => { if (!session) throw new Error("No session"); return session.adapter.call<T>(op, input); },
     enabled: !!session,
     retry: false,
   });
@@ -106,6 +137,7 @@ export function useCommand<T>(op: OperationId, invalidate: OperationId[]) {
   const pending = useRef<CommandAttempt | null>(null);
   return useMutation({
     mutationFn: async ({ payload, version }: { payload?: unknown; version?: number }) => {
+      if (!session) throw new Error("No session");
       const input: RequestInput = payload === undefined ? {} : { body: payload };
       let attempt = pending.current;
       if (attempt) {
@@ -114,7 +146,7 @@ export function useCommand<T>(op: OperationId, invalidate: OperationId[]) {
         attempt = createCommandAttempt(op, input, version);
       }
       try {
-        const r = await sendAttempt<T>(session!.adapter, attempt);
+        const r = await sendAttempt<T>(session.adapter, attempt);
         pending.current = null;
         return r;
       } catch (e) {

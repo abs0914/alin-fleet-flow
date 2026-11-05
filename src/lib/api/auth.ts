@@ -3,7 +3,7 @@ import { z } from "zod";
 /** User-confirmed existing backend; never use the attached fleet project's auth. */
 export const ALIN_API_BASE_URL = "https://app.alinmove.com/api";
 export const ALIN_API_ORIGIN = "https://app.alinmove.com";
-export const LOGIN_CONTRACT = Object.freeze({ method: "POST", pathTemplate: "/api/auth/login" });
+export const LOGIN_CONTRACT = Object.freeze({ method: "POST" as const, pathTemplate: "/api/auth/login" });
 
 export interface LoginCredentials {
   email: string;
