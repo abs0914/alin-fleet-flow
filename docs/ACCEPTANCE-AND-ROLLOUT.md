@@ -13,6 +13,7 @@ These run with `bunx vitest run` and test only portal code. They certify nothing
 | `src/test/adapter.test.ts` | Fail closed (no config, unverified route, no token); no demo fallback; fixture-only request builder (path params, query allowlist, unsafe mapping/origin rejection, token only to configured origin, GET body rejected); command metadata required; unknown-outcome retry reuses key/payload |
 | `src/test/demo-assignment.test.ts` | DEMO-only simulation: seed consistency, compatible assignment commits, double-booking rejected, incompatible category/expired docs/expired license/revoked membership/overweight rejected, paired tractor+trailer reserved together, pre-pickup replacement releases old assets, post-pickup refused, proposal/vehicle payloads commit. **Not security** — ASSET-01/02 and DRIVER-04/05 remain pending on real backend |
 | `src/test/app-routing.test.tsx` | Route tree resolves `/` |
+| `src/test/demo-settlement.test.ts` | Sample reads return fleet management wallet recipient and ALiN Move revenue fee recipient; explicit ₱399/₱1,000 single-fee estimates; reads do not mutate records; unapproved payouts remain blocked. **Not proof of live wallet routing or ledger posting.** |
 
 ## Required fixtures
 
@@ -51,16 +52,18 @@ Isolated staging/sandbox environment with production payouts disabled; fleets A/
 | MONEY-09 | Odd-cent Q=₱1,000.01 using proposed rounding | P1 ₱700.01 + P2 ₱300.00 = Q; no floating-point drift |
 | MONEY-10 | Concurrent holds, existing unrelated holds and top-up webhook replay | Spendable invariants hold; top-up credited exactly once after verified success |
 | MONEY-11 | Intro fee changes after quote confirmation | Frozen fee retained; ₱10,000 gross yields ₱9,601 intro or ₱9,000 regular before approved adjustments |
-| MONEY-12 | Complete fleet job through legacy rider delivery handler | No rider earning or legacy commission in addition to fleet fee/entitlement |
+| MONEY-12 | Complete managed-fleet job through legacy rider delivery/cashout handler | Net proceeds settle to the owning fleet management wallet, individual fleet-driver earnings credit ₱0; one platform fee to ALiN Move revenue; no duplicate legacy commission; independent-rider cashout unchanged |
 | MONEY-13 | Below-fee fare; cancellation/no-show/partial delivery without approved policy | Financial review state; no guessed forfeiture/negative automatic payable |
 | MONEY-14 | Refund, adjustment and payout retries; unknown provider payout result | Compensating journal only; single payout; query unknown result before retry; trial balance balanced |
+| MONEY-15 | Captured gross ₱10,000, no adjustments; intro then regular fee policy | Exactly one ₱399 revenue posting and ₱9,601 fleet-wallet settlement, or one ₱1,000 revenue posting and ₱9,000 fleet-wallet settlement; driver credit ₱0, cancellation hold excluded; journals balanced |
+| MONEY-16 | Concurrent settlement credits, timeout/replay, changed fleet/wallet ID submitted by client | One durable entitlement and wallet credit only; destination resolved from authoritative ownership, cross-fleet redirect denied; unknown result reconciled before retry; eligible state not represented as posted credit |
 | NOTIFY-01 | Roll back booking transaction and inspect outbox | No committed notification about rolled-back booking |
 | NOTIFY-02 | Push outage, invalid token, duplicate/out-of-order events and reconnect | Inbox remains usable; bounded retry/dead-letter; dedupe; canonical refresh; authorization rechecked |
 | TRACK-01 | Wrong job GPS, revoked driver, stale/invalid coordinates, delayed offline upload | Unauthorized rejected; stale clearly labelled; no fabricated positions |
 | DOC-01 | Oversize/disallowed content, expired signed URL, foreign-fleet document ID | Upload/download denied; private file not leaked |
 | UI-01 | Keyboard/mobile, loading/empty/403/409/offline states, session logout | Accessible controls; clear states; sensitive caches cleared; no silent demo fallback |
 | UI-02 | Missing API mapping/configuration | Integration-required state; production mutations disabled; demo visibly labelled |
-| WALLET-01 | Attempt wallet cashout, peer transfer, or operator payout sourced from a customer AI Wallet balance | No such operation exists; fleet proceeds only via FleetSettlement after finance approval |
+| WALLET-01 | Attempt customer prepaid-wallet cashout, peer transfer, or operator withdrawal of customer prepaid balance | Denied; customer prepaid funds remain separate from backend-authorized fleet management wallet settlement of collected fare |
 | IDEM-01 | Replay command with same key+payload after timeout; same key+different payload; status lookup by key after client reload | Original result returned; conflict on changed payload; reconcilable status without re-send |
 | REG-01 | Existing independent-rider offers, customer bookings, branch/cargo workflows, finance reports | Existing supported flows preserved; sandbox excluded; fleet data only where authorized |
 
@@ -89,7 +92,7 @@ UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level onl
 
 ## Unresolved decisions
 
-- Standard-job payment terms (holds, split, fee applicability): portal shows "awaiting backend confirmation"; ₱1,000 hold and 70/30 labels appear only on accepted RFQ quotes.
+- Standard-job hold and split applicability await backend confirmation; ₱1,000 hold and 70/30 labels appear only on accepted RFQ quotes. The ₱399 introductory / ₱1,000 regular platform fee is confirmed once per booking, including standard fleet jobs, allocated to ALiN Move revenue.
 - Demo fixtures are Cebu / Mandaue / Lapu-Lapu sample data only.
 
 - Backend command-status/reconciliation operation (by idempotency key) — required before any portal command is enabled.
@@ -99,7 +102,7 @@ UI-02 is partially covered by `src/test/adapter.test.ts` at the portal level onl
 - Driver assignment acknowledgment gating dispatch.
 - Cancellation/no-show/forfeiture policy beyond the stated customer cancellation fee.
 - Intro fee eligibility/expiry (server-configured; no date invented).
-- Payout policy (payout requests disabled).
+- Fleet management wallet credit timing, settlement balance/withdrawal capabilities, top-up requirements and payout policy (payout requests disabled). Fleet recipient routing is user-confirmed, not backend-tested.
 - Location retention and consent; stale threshold (proposed 120 s).
 - Mapping integration provider.
 - Mapping of proposed roles to existing backend roles.
