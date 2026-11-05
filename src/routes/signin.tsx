@@ -11,6 +11,8 @@ export const Route = createFileRoute("/signin")({
       { name: "description", content: "Sign in to the ALiN Move Fleet Manager Portal with your existing ALiN account." },
       { property: "og:title", content: "Sign in — ALiN Move Fleet Portal" },
       { property: "og:description", content: "Fleet managers sign in with their existing ALiN account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SignIn,

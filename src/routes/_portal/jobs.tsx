@@ -149,13 +149,13 @@ function BookingDetail({ b }: { b: Booking }) {
           <div><p className="text-muted-foreground">Dispatch funding (70% of quote)</p><StatusBadge tone={b.fundingVerified === "verified" ? "ok" : b.fundingVerified === "insufficient" ? "bad" : "muted"}>{b.fundingVerified}</StatusBadge></div>
           <div><p className="text-muted-foreground">Pickup capture{split ? ` (est. ${formatPHP(split.p1)})` : ""}</p><StatusBadge tone={capTone(b.pickupCapture)}>{b.pickupCapture.replace("_", " ")}</StatusBadge></div>
           <div><p className="text-muted-foreground">Final capture{split ? ` (est. ${formatPHP(split.p2)})` : ""}</p><StatusBadge tone={capTone(b.finalCapture)}>{b.finalCapture.replace("_", " ")}</StatusBadge></div>
-          <div><p className="text-muted-foreground">Platform fee ({b.feeKind ?? "pending"}, frozen by backend)</p><p className="font-semibold">{b.feeCentavos === null ? "Awaiting backend" : formatPHP(b.feeCentavos)}</p></div>
-          <div><p className="text-muted-foreground">Estimated net settlement <span className="text-xs">(estimate only)</span></p><p className="font-semibold">{net === null ? "Finance review" : formatPHP(net)}</p></div>
+           <div><p className="text-muted-foreground">Platform fee to ALiN Move revenue ({b.feeKind ?? "pending"}, frozen)</p><p className="font-semibold">{b.feeCentavos === null ? "Awaiting backend" : formatPHP(b.feeCentavos)}</p></div>
+           <div><p className="text-muted-foreground">Estimated fleet wallet settlement <span className="text-xs">(estimate only)</span></p><p className="font-semibold">{net === null ? "Finance review" : formatPHP(net)}</p></div>
         </div>
       ) : (
         <div className="rounded-md border border-dashed p-3 text-sm">
           <p className="font-semibold">Standard job · fare {formatPHP(b.grossCentavos)} (backend)</p>
-          <p className="text-muted-foreground">The fleet platform fee (₱399 introductory / ₱1,000 regular, per booking) applies; the frozen amount comes from the backend. Whether the cancellation hold and 70/30 capture apply to standard jobs is awaiting confirmation. Nothing here is estimated.</p>
+           <p className="text-muted-foreground">The fleet platform fee (₱399 introductory / ₱1,000 regular, per booking) goes to ALiN Move revenue, deducted once from fleet management wallet settlement. The frozen amount comes from the backend. Whether the cancellation hold and 70/30 capture apply to standard jobs is awaiting confirmation. Nothing here is estimated.</p>
         </div>
       )}
       <p className="text-xs text-muted-foreground">Payment statuses and physical pickup/delivery are tracked separately. A green indicator here never authorizes dispatch — only the backend does.</p>

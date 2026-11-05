@@ -110,8 +110,8 @@ export function seed(): DemoState {
       { jobId: "bk-2", capturedAt: null, accuracyM: null, lat: null, lng: null },
     ],
     settlements: [
-      { id: "stl-1", bookingId: "bk-0", grossCentavos: 1_000_000, capturedCentavos: 1_000_000, feeCentavos: 39_900, feeKind: "intro", adjustmentsCentavos: 0, netPayableCentavos: 960_100, disputedCentavos: 0, holdNote: "₱1,000.00 cancellation hold released to customer (not part of payable)", state: "eligible", ledgerRefs: ["DEMO-LDG-0001", "DEMO-LDG-0002"] },
-      { id: "stl-2", bookingId: "bk-x", grossCentavos: 450_000, capturedCentavos: 315_000, feeCentavos: 100_000, feeKind: "regular", adjustmentsCentavos: 0, netPayableCentavos: null, disputedCentavos: 135_000, holdNote: "Final 30% payment due — settlement blocked", state: "blocked", ledgerRefs: ["DEMO-LDG-0007"] },
+      { id: "stl-1", bookingId: "bk-0", settlementRecipient: { kind: "fleet_management_wallet", fleetId: "demo-fleet-a" }, platformFeeRecipient: "alin_move_revenue", grossCentavos: 1_000_000, capturedCentavos: 1_000_000, feeCentavos: 39_900, feeKind: "intro", adjustmentsCentavos: 0, netPayableCentavos: 960_100, disputedCentavos: 0, holdNote: "₱1,000.00 cancellation hold released to customer (not part of payable)", state: "eligible", ledgerRefs: ["DEMO-LDG-0001", "DEMO-LDG-0002"] },
+      { id: "stl-2", bookingId: "bk-x", settlementRecipient: { kind: "fleet_management_wallet", fleetId: "demo-fleet-a" }, platformFeeRecipient: "alin_move_revenue", grossCentavos: 450_000, capturedCentavos: 315_000, feeCentavos: 100_000, feeKind: "regular", adjustmentsCentavos: 0, netPayableCentavos: null, disputedCentavos: 135_000, holdNote: "Final 30% payment due — settlement blocked", state: "blocked", ledgerRefs: ["DEMO-LDG-0007"] },
     ],
     notices: [
       { id: "n-1", type: "rfq.opened", title: "New reefer RFQ: Lapu-Lapu → Danao", at: iso(-15), read: false, link: "/rfqs" },
