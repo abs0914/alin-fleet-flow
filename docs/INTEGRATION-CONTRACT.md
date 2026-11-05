@@ -1,6 +1,6 @@
 # Proposed ALiN Move fleet integration contract
 
-Status: **DRAFT**. This is a design contract for implementation in the **existing backend** (Fastify / Prisma / PostgreSQL, Supabase auth, Maya payments, AI Wallet, existing riders/jobs/ledger). Logical operation IDs below are not verified routes. No base URL or credentials are supplied. A backend-owned OpenAPI spec and staging contract tests must bind each operation to a real method/path before integration.
+Status: **DRAFT**. This is a design contract for implementation in the **existing backend** (Fastify / Prisma / PostgreSQL, Supabase auth, Maya payments, AI Wallet, existing riders/jobs/ledger). Logical fleet operation IDs below are not verified routes. The user confirmed the existing API base URL and login path on 2026-11-05; no credentials were supplied. A backend-owned OpenAPI spec and staging contract tests must bind each fleet operation to a real method/path before integration.
 
 Portal binding: `src/lib/api/operations.ts` holds the operation → real-route mapping. Every entry is `status: "unverified"`, `route: null`. The production adapter (`src/lib/api/adapter.ts`) fails closed until an entry is verified. The live matrix is at `/dev/capabilities` in the portal.
 
@@ -11,6 +11,18 @@ Extend existing Fastify routes/services, Prisma migrations and PostgreSQL transa
 References document GET `/api/me`, `/api/rider/offers/pending`, `/api/rider/batch-offers/pending`, POST `/api/rider/offers/:id/respond`, PUT `/api/rider/jobs/:id/status` and POST `/api/rider/jobs/:id/pod`. These are historical documented routes, not live-verified interfaces; schemas, auth and all alternate acceptance routes need code inspection. Existing error shape is documented as `{message}`; preserve compatibility while adding optional stable `code`, `requestId`, `details` and retryability.
 
 ## 2. Identity and authorization
+
+### Confirmed existing sign-in contract (2026-11-05)
+
+- API base URL: **`https://app.alinmove.com/api`**.
+- Origin (for origin-relative adapter paths): `https://app.alinmove.com`. The `/api` prefix belongs in each path, not in `VITE_ALIN_API_ORIGIN`.
+- Login: **`POST /api/auth/login`**, resolved exactly to **`https://app.alinmove.com/api/auth/login`** (never `/api/api/auth/login`).
+- The existing app's public client sends JSON `{ "email": "<email>", "password": "<password>" }` and consumes top-level `access_token`, `expires_in` and optional `refresh_token`. This request/response shape was observed in the public client, not verified by a credentialed staging test. The fleet portal requires a nonempty access token and positive integer `expires_in` up to the reported one-hour lifetime; malformed success responses open no session. Refresh-token retention and automatic refresh are not implemented; expiry requires sign-in again.
+- Reported canonical token authority: `https://imewvxrqjgjkdtpyaijf.supabase.co/auth/v1`, audience `authenticated`, ES256 with `kid`; signature/issuer/audience/revocation verification remains the backend's responsibility. The attached `alinmove-fleet` project's auth is not used.
+- The browser sign-in form now attempts the confirmed login directly through `loginExistingAccount` in `src/lib/api/adapter.ts`. Requests use JSON, CORS mode, omitted cookies, no redirects, no cache, and a 15-second timeout. There is no proxy, `no-cors` workaround, retry loop, guessed endpoint, or demo fallback. Credentials/tokens are never logged or persisted; the access token and expiry live only in memory and are cleared with caches on sign-out/expiry. Refresh tokens and returned user/role fields are discarded.
+- Browser fetch errors cannot distinguish CORS rejection from offline/DNS/TLS failure. The portal shows a connection/retry message noting that ALiN Move may still need to allow this portal; it does not claim CORS is definitively the cause. Invalid credentials, forbidden, rate-limit, unavailable and malformed responses have separate safe messages without displaying raw server bodies.
+- Backend CORS deployment must explicitly allow `https://fleet.alinmove.com`, `https://alin-fleet-flow.lovable.app`, and approved preview origins (current preview: `https://id-preview--43f824f6-9553-46ea-bde0-4c9ffb79a3c1.lovable.app`), with `OPTIONS`/`POST` and `Content-Type` for login. Authenticated verified fleet operations additionally need the documented authorization/command headers. No wildcard origins or credentialed-cookie access are requested.
+- Successful login is **not** verified fleet membership, permission, or business integration. All 32 fleet bindings remain unverified and fail closed; the portal still shows Integration required until authoritative fleet context and APIs are staging-tested. Real account sign-in and deployed CORS remain pending verification with the backend team.
 
 Validate token signature, issuer, audience, expiry and revocation policy using the existing auth system. Resolve active user, roles, fleet memberships and resource ownership server-side on every request/event subscription. Never accept role, fleet ownership or approval from submitted JSON. Client fleetId is only a selector validated against membership. Validate authorization on exports, uploads/downloads, notifications, maps and cached read models too.
 
