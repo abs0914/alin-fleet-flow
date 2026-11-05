@@ -20,3 +20,4 @@
 - Route mappings are origin-relative templates with query allowlists; commands go through frozen CommandAttempts so retries after unknown outcomes reuse the same idempotency key.
 - Backend/mobile contract and acceptance plan live in `docs/`.
 - Commercial rate sheets live as frozen, import-free reference modules under `src/lib/reference/` and never feed price/payment code — reference data must not silently change money.
+- Settlement recipient fields are optional backend-provided display data, with explicit pending labels when absent; demo fixtures describe recipients without simulating wallet credits or enabling payout commands.

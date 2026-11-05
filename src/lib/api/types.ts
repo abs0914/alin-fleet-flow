@@ -150,6 +150,9 @@ export interface TrackingLatest {
 export interface Settlement {
   id: string;
   bookingId: string;
+  /** Backend-provided settlement routing; absent until the integration confirms it. */
+  settlementRecipient?: { kind: "fleet_management_wallet"; fleetId: string };
+  platformFeeRecipient?: "alin_move_revenue";
   grossCentavos: Centavos;
   capturedCentavos: Centavos;
   feeCentavos: Centavos;
